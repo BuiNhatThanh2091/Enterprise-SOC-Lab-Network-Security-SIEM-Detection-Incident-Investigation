@@ -1,0 +1,90 @@
+graph TD
+    %% -------------------------------------------------------------
+    %% DETECTION DEPENDENCY GRAPH & MULTI-SOURCE CORRELATION
+    %% Telemetry Sources -> Atomic Detection Rules (A01-A13) -> Composite Correlation (C01)
+    %% -------------------------------------------------------------
+
+    subgraph TELEMETRY["TELEMETRY SOURCES (DATA PRODUCERS)"]
+        POSTFIX["MAIL01: Postfix Syslog<br/>(Mail delivery, Queue ID)"]
+        SURICATA["SURICATA-IPS01: EVE JSON<br/>(Signatures, Network Alerts, Flow)"]
+        SYSMON["IT-ADMIN01: Sysmon EventLog<br/>(Process Create, Network Connect)"]
+        ZEEK["ZEEK-SENSOR01: conn.log<br/>(Session Metadata, Flow UID)"]
+        POWERSHELL["IT-ADMIN01: PowerShell 4104<br/>(ScriptBlock Execution Logs)"]
+        AUDITD["WEB01: Linux Auditd<br/>(-k web_exec, docker exec)"]
+        MARIADB["DB01: MariaDB SERVER_AUDIT<br/>(Raw SQL Query, mysqldump)"]
+    end
+
+    subgraph ATOMIC_RULES["ATOMIC DETECTION RULES (ARCSIGHT ESM)"]
+        A01["A01: Mail Delivered to Internal User<br/>(Postfix delivery to user01)"]
+        A02["A02: Suspicious External Web Download<br/>(Suricata SID 1101002 - .zip download)"]
+        A03["A03: Suspicious Script Execution<br/>(Sysmon ID 1 - mshta.exe)"]
+        A04["A04: Suspicious Outbound Callback<br/>(Zeek TCP/4444 Reverse Shell)"]
+        A05["A05: Post-Compromise Discovery Burst<br/>(Sysmon ID 1 - Discovery cmds, >=3/5m)"]
+        A06["A06: Credential Material Collection<br/>(Sysmon ID 1 - xcopy Firefox profile)"]
+        A07["A07: Suspicious Data Staging / Raw Transfer<br/>(PowerShell 4104 - Compress-Archive/TcpClient)"]
+        A08["A08: Suspicious Tool Transfer or Execution<br/>(Sysmon/PS - Invoke-WebRequest agent.exe)"]
+        A09["A09: Suspicious External Tunnel<br/>(Sysmon ID 3 / Zeek - TCP/11601 Ligolo-ng)"]
+        A10["A10: Internal Remote Access to WEB Tier<br/>(Suricata flow - SSH TCP/22 to DMZ)"]
+        A11["A11: Sensitive Privileged WEB Activity<br/>(Auditd - docker exec site_config.json)"]
+        A12["A12: Suspicious Database Collection<br/>(MariaDB Audit - SHOW DATABASES, >=2/5m)"]
+        A13["A13: Suspicious DMZ External Transfer<br/>(Suricata SID 1101021 - Exfil TCP/9999)"]
+    end
+
+    subgraph CORRELATION_ENGINE["ESM CORRELATION LAYER (IN-MEMORY ENGINE)"]
+        C01["C01: Initial Compromise Correlation<br/>─────────────────────────────<br/>Multi-Source Composite Join:<br/>• A02: Ingress Download<br/>• A03: Host mshta Execution<br/>• A04: Egress C2 TCP/4444<br/>Entity: sourceAddress = 10.10.35.18<br/>Window: Delta t <= 20 minutes<br/>Severity: Critical (9-10)"]
+    end
+
+    subgraph INCIDENT_LIFECYCLE["INCIDENT TRIAGE & DRILL-DOWN"]
+        P1_ALERT["High-Fidelity P1 Incident Alert<br/>(Immediate SOC Dispatch & Host Containment)"]
+        INVESTIGATION["Retrospective Forensic Drill-down<br/>(Pivot via Logger to A05-A13)"]
+    end
+
+    %% Mappings from Telemetry to Atomic Rules
+    POSTFIX --> A01
+
+    SURICATA --> A02
+    SURICATA --> A10
+    SURICATA --> A13
+
+    SYSMON --> A03
+    SYSMON --> A05
+    SYSMON --> A06
+    SYSMON --> A08
+    SYSMON --> A09
+
+    ZEEK --> A04
+    ZEEK --> A09
+
+    POWERSHELL --> A07
+    POWERSHELL --> A08
+
+    AUDITD --> A11
+
+    MARIADB --> A12
+
+    %% Correlation Join
+    A02 -.->|Trigger 1: Ingress| C01
+    A03 -.->|Trigger 2: Execution| C01
+    A04 -.->|Trigger 3: Callback| C01
+
+    %% Incident Outcome
+    C01 ==> P1_ALERT
+    P1_ALERT ==> INVESTIGATION
+
+    %% Investigation Links
+    INVESTIGATION -.->|Contextual Audit| A01
+    INVESTIGATION -.->|Lateral Spread| A09
+    INVESTIGATION -.->|Lateral Spread| A10
+    INVESTIGATION -.->|Application Exploit| A11
+    INVESTIGATION -.->|Database Exfil| A12
+    INVESTIGATION -.->|Network Exfil| A13
+
+    classDef telemetry fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b;
+    classDef atomic fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1px,color:#4a148c;
+    classDef correlation fill:#ffebee,stroke:#c62828,stroke-width:3px,color:#b71c1c;
+    classDef triage fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#bf360c;
+
+    class POSTFIX,SURICATA,SYSMON,ZEEK,POWERSHELL,AUDITD,MARIADB telemetry;
+    class A01,A02,A03,A04,A05,A06,A07,A08,A09,A10,A11,A12,A13 atomic;
+    class C01 correlation;
+    class P1_ALERT,INVESTIGATION triage;

@@ -1,0 +1,1 @@
+deviceHostName="IT-ADMIN" AND externalId=4104 AND ((message CONTAINS "Compress-Archive" AND message CONTAINS "\Users\Public\") OR (message CONTAINS "TcpClient" AND message CONTAINS "GetStream"))

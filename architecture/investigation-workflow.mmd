@@ -1,0 +1,74 @@
+flowchart TD
+    %% -------------------------------------------------------------
+    %% INCIDENT INVESTIGATION & FORENSIC PIVOTING WORKFLOW
+    %% Closed-loop SOC operational investigation process
+    %% -------------------------------------------------------------
+
+    subgraph PHASE_DETECTION["1. DETECTION & INITIAL TRIAGE"]
+        ALERT["ArcSight ESM Real-Time Alert<br/>(Atomic Rule or Composite Correlation C01)"]
+        TRIAGE["Initial Alert Triage<br/>• Verify True Positive vs Benign Activity<br/>• Assess Alert Priority & Severity Rating"]
+        ENTITY["Entity Identification<br/>• Extract Primary Assets: IP, Hostname, User<br/>• Establish Anchor Timestamp (T0)"]
+    end
+
+    subgraph PHASE_HYPOTHESIS["2. HYPOTHESIS & EVIDENCE GATHERING"]
+        INITIAL_EVID["Collect Initial Contextual Evidence<br/>• Inspect Trigger Event Details in ESM<br/>• Extract Correlation Keys (ProcessGuid, FlowID, UID)"]
+        HYPOTHESIS["Formulate Investigative Hypotheses<br/>• H1: Was code executed on the endpoint?<br/>• H2: Did outbound C2 callback succeed?<br/>• H3: Has activity progressed laterally or staged data?"]
+    end
+
+    subgraph PHASE_DEEP_DIVE["3. LOGGER FORENSIC SEARCH & CROSS-TELEMETRY PIVOT"]
+        LOGGER_SEARCH["ArcSight Logger Deep Search<br/>• Execute Targeted Queries across Narrow Time Window<br/>• Expand Search (+/- 1-2 hours) Around Anchor T0"]
+        PIVOT_NETWORK["Network Telemetry Pivot<br/>• Suricata EVE JSON (Signatures, Flow IDs)<br/>• Zeek Session Metadata (conn.log, dns.log, ZeekUID)"]
+        PIVOT_ENDPOINT["Endpoint Telemetry Pivot<br/>• Sysmon Event ID 1 (Process Tree, CommandLine, ProcessGuid)<br/>• PowerShell ScriptBlock 4104 (Command Code blocks)"]
+        PIVOT_APPLICATION["Application & Host Telemetry Pivot<br/>• Linux Auditd (Docker exec, sudo commands)<br/>• MariaDB SERVER_AUDIT (Raw SQL Queries, Tables)"]
+    end
+
+    subgraph PHASE_RECONSTRUCTION["4. TIMELINE & ATTACK RECONSTRUCTION"]
+        TIMELINE["Chronological Timeline Reconstruction<br/>• Normalize Observed Timestamps Across Heterogeneous Logs<br/>• Separate Observed Telemetry Facts from Analytic Inferences"]
+        CORRELATION["Multi-Source Event Correlation<br/>• Connect Network Ingress to Host Execution & Egress C2<br/>• Validate Hypothesis Support (SUPPORTED / NOT SUPPORTED)"]
+        ATTACK_CHAIN["Attack Chain Reconstruction<br/>• Map Verified Events to MITRE ATT&CK Stages<br/>• Identify Complete Intrusion Lifecycle"]
+    end
+
+    subgraph PHASE_ASSESSMENT["5. SCOPE ASSESSMENT & CONTAINMENT"]
+        SCOPE["Scope Assessment & Blast Radius Analysis<br/>• Verify Whether Compromise Spread Beyond Initial Host<br/>• Audit Lateral Movement (Ligolo-ng, Inter-Zone SSH)"]
+        CONTAINMENT["Incident Containment & Response<br/>• Isolate Affected Host at Perimeter/Switching Plane<br/>• Terminate Rogue Processes & Revoke Compromised Credentials<br/>• Implement Egress Gateway Blocking on Firewalls"]
+        VALIDATION["Containment Validation<br/>• Query Post-Remediation Telemetry to Verify Cessation<br/>• Validate Process & Connection Termination"]
+    end
+
+    subgraph PHASE_IMPROVEMENT["6. POST-INCIDENT DETECTION ENGINEERING"]
+        IMPROVE["Detection Improvement & Hardening<br/>• Address Telemetry Gaps (Blind Spots, L2 Bypass)<br/>• Tune Active Channel Alert Filters (Volume Mitigation)<br/>• Implement Proactive GPO & Host Access Controls"]
+    end
+
+    %% Workflow Progression
+    ALERT --> TRIAGE
+    TRIAGE --> ENTITY
+    ENTITY --> INITIAL_EVID
+    INITIAL_EVID --> HYPOTHESIS
+    HYPOTHESIS --> LOGGER_SEARCH
+
+    LOGGER_SEARCH --> PIVOT_NETWORK
+    LOGGER_SEARCH --> PIVOT_ENDPOINT
+    LOGGER_SEARCH --> PIVOT_APPLICATION
+
+    PIVOT_NETWORK --> TIMELINE
+    PIVOT_ENDPOINT --> TIMELINE
+    PIVOT_APPLICATION --> TIMELINE
+
+    TIMELINE --> CORRELATION
+    CORRELATION --> ATTACK_CHAIN
+    ATTACK_CHAIN --> SCOPE
+
+    SCOPE --> CONTAINMENT
+    CONTAINMENT --> VALIDATION
+    VALIDATION --> IMPROVE
+
+    classDef alert fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c;
+    classDef search fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b;
+    classDef recon fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c;
+    classDef response fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#bf360c;
+    classDef improve fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+
+    class ALERT,TRIAGE,ENTITY alert;
+    class INITIAL_EVID,HYPOTHESIS,LOGGER_SEARCH,PIVOT_NETWORK,PIVOT_ENDPOINT,PIVOT_APPLICATION search;
+    class TIMELINE,CORRELATION,ATTACK_CHAIN recon;
+    class SCOPE,CONTAINMENT,VALIDATION response;
+    class IMPROVE improve;

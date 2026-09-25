@@ -1,0 +1,1 @@
+deviceProduct="Postfix Mail Server" AND name="Postfix Local Delivery" AND deviceAction="sent" AND destinationUserName="user01@soclab.test"

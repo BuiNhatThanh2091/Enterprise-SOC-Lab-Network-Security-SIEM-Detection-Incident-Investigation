@@ -1,0 +1,1 @@
+deviceProduct="WEB01 Web Stack" AND message CONTAINS "docker exec" AND message CONTAINS "site_config.json"

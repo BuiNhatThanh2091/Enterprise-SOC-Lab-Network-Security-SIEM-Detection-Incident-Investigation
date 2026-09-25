@@ -1,0 +1,63 @@
+graph TD
+    %% -------------------------------------------------------------
+    %% CASE 004: LATERAL MOVEMENT & DATABASE COLLECTION FLOW
+    %% -------------------------------------------------------------
+
+    subgraph TUNNEL_SSH["1. NETWORK PIVOT & LATERAL ACCESS"]
+        ALERT_A09["ESM Alert: A09 Tunnel<br/>Ligolo-ng on TCP/11601 active"]
+        SURICATA_A10["ESM Alert: A10 SSH Access<br/>TCP/22: 10.10.35.18 ──► WEB01 (10.10.34.13)"]
+        QUERY_AUTH["Logger Query: Linux auth.log<br/>Accepted password for user thanh from 10.10.35.18"]
+    end
+
+    subgraph CONTAINER_AUDIT["2. HOST AUDIT & PRIVILEGE ESCALATION"]
+        ALERT_A11["ESM Alert: A11 Privileged Web Exec<br/>Host: WEB01 (-k web_exec)"]
+        QUERY_AUDITD["Logger Query: Linux Auditd<br/>sudo docker exec -it hrms-backend-1 cat ... site_config.json"]
+        EVID_CREDS["Database Credentials Exposed<br/>User: _6f9beb897020ebe5<br/>Host: 10.10.35.19:3306"]
+    end
+
+    subgraph L2_PROBING["3. LAYER-2 DIRECT SWITCHING CHECK"]
+        ATTEMPT_DIRECT["Direct Probe: IT-ADMIN01 ──► DB01:3306<br/>Suricata IPS observes 0 packets (Same-L2 Blind Spot)"]
+        IPTABLES_DROP["DB01 Host Firewall: IPTABLES-DROP<br/>Compensatory Host Control Blocks Access"]
+    end
+
+    subgraph DB_COLLECTION["4. DATABASE AUDIT & DATA DUMP"]
+        PIVOT_WEB["Attacker Pivots via Whitelisted WEB01<br/>Executes mysqldump against DB01"]
+        ALERT_A12["ESM Alert: A12 DB Collection<br/>Threshold: >= 2 dump queries in 5m"]
+        QUERY_MARIADB["Logger Query: MariaDB SERVER_AUDIT<br/>SHOW DATABASES & tabEmployee dump confirmed"]
+        EVID_DUMP["Staged Archive on WEB01<br/>/tmp/_6f9beb897020ebe5.sql.gz (4.1 MB)"]
+    end
+
+    subgraph CONTAINMENT["5. REMEDIATION & HARDENING"]
+        REVOKE_SUDO["Revoke sudo docker on WEB01"]
+        ROTATE_DB["Rotate DB User _6f9beb... Password"]
+        HARDEN_SSH["Enforce SSH Key-Only Auth on WEB01"]
+    end
+
+    %% Connections
+    ALERT_A09 --> SURICATA_A10
+    SURICATA_A10 --> QUERY_AUTH
+    QUERY_AUTH --> ALERT_A11
+    ALERT_A11 --> QUERY_AUDITD
+    QUERY_AUDITD --> EVID_CREDS
+    EVID_CREDS --> ATTEMPT_DIRECT
+    ATTEMPT_DIRECT --> IPTABLES_DROP
+    IPTABLES_DROP --> PIVOT_WEB
+    PIVOT_WEB --> ALERT_A12
+    ALERT_A12 --> QUERY_MARIADB
+    QUERY_MARIADB --> EVID_DUMP
+
+    EVID_DUMP --> REVOKE_SUDO
+    EVID_DUMP --> ROTATE_DB
+    EVID_DUMP --> HARDEN_SSH
+
+    classDef alert fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c;
+    classDef network fill:#e1f5fe,stroke:#0288d1,stroke-width:1px,color:#01579b;
+    classDef host fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1px,color:#4a148c;
+    classDef db fill:#fff3e0,stroke:#e65100,stroke-width:1px,color:#bf360c;
+    classDef response fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+
+    class ALERT_A09,SURICATA_A10,ALERT_A11,ALERT_A12 alert;
+    class QUERY_AUTH,ATTEMPT_DIRECT,IPTABLES_DROP network;
+    class QUERY_AUDITD,EVID_CREDS,PIVOT_WEB host;
+    class QUERY_MARIADB,EVID_DUMP db;
+    class REVOKE_SUDO,ROTATE_DB,HARDEN_SSH response;

@@ -1,0 +1,1 @@
+deviceProduct="MariaDB Server Audit" AND sourceAddress=10.10.34.13 AND (deviceCustomString3 CONTAINS "SHOW DATABASES" OR deviceCustomString3 CONTAINS "INFORMATION_SCHEMA.FILES" OR deviceCustomString3 CONTAINS "TABLESPACE_NAME")

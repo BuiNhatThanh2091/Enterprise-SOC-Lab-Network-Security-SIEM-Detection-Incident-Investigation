@@ -1,0 +1,1 @@
+deviceHostName="IT-ADMIN" AND ((externalId=4104 AND message CONTAINS "Invoke-WebRequest" AND message CONTAINS "ligolo-agent.exe") OR (deviceProduct="Sysmon" AND externalId=1 AND destinationProcessName CONTAINS "agent.exe"))

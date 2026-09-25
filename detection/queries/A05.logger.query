@@ -1,0 +1,1 @@
+deviceHostName="IT-ADMIN" AND deviceProduct="Sysmon" AND externalId=1 AND (deviceCustomString4 CONTAINS "where ssh" OR deviceCustomString4 CONTAINS ".ssh" OR destinationProcessName CONTAINS "qwinsta.exe")

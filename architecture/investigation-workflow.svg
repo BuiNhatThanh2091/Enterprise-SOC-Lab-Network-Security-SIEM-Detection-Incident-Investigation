@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 950" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-weight: 700; font-size: 22px; fill: #1a202c; }
+      .subtitle { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-size: 13px; fill: #718096; }
+      .phase-title { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
+      .step-title { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-weight: 700; font-size: 12px; fill: #1a202c; }
+      .step-desc { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-size: 10.5px; fill: #4a5568; line-height: 1.35; }
+      .zone-box { rx: 8; stroke-width: 1.5; stroke-dasharray: 4,4; }
+      .node-card { rx: 6; stroke-width: 1.5; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); }
+      .workflow-arrow { stroke-width: 2; fill: none; stroke: #2b6cb0; marker-end: url(#arrow-blue); }
+    </style>
+
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2b6cb0" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="950" fill="#f8fafc" />
+
+  <!-- Header -->
+  <g transform="translate(40, 35)">
+    <text class="title" x="0" y="0">INCIDENT INVESTIGATION &amp; FORENSIC PIVOTING WORKFLOW</text>
+    <text class="subtitle" x="0" y="20">Level 5: Standard Operating Procedure for Alert Triage, Causal Hypothesis Testing, Cross-Telemetry Pivots &amp; Validated Containment</text>
+  </g>
+
+  <!-- ==================== PHASE 1: DETECTION & INITIAL TRIAGE ==================== -->
+  <g transform="translate(40, 75)">
+    <rect class="zone-box" width="1120" height="115" fill="#fff5f5" stroke="#feb2b2" />
+    <text class="phase-title" x="20" y="22" fill="#c53030">PHASE 1: DETECTION &amp; INITIAL TRIAGE (ARCSIGHT ESM CONSOLE)</text>
+
+    <!-- STEP 1.1 -->
+    <rect class="node-card" x="30" y="35" width="340" height="65" fill="#ffffff" stroke="#e53e3e" />
+    <text class="step-title" x="42" y="55">1. REAL-TIME ALERT NOTIFICATION</text>
+    <text class="step-desc" x="42" y="70">• Alert triggers on Active Channel (Composite C01 or Atomic A01-A13)</text>
+    <text class="step-desc" x="42" y="84">• Assess alert severity rating (e.g. Critical Severity 9 for C01)</text>
+
+    <!-- STEP 1.2 -->
+    <rect class="node-card" x="410" y="35" width="340" height="65" fill="#ffffff" stroke="#e53e3e" />
+    <text class="step-title" x="422" y="55">2. INITIAL ALERT TRIAGE</text>
+    <text class="step-desc" x="422" y="70">• Rule out known maintenance windows or benign admin tasks</text>
+    <text class="step-desc" x="422" y="84">• Verify true-positive indicators and evaluate alert urgency</text>
+
+    <!-- STEP 1.3 -->
+    <rect class="node-card" x="790" y="35" width="300" height="65" fill="#ffffff" stroke="#e53e3e" />
+    <text class="step-title" x="802" y="55">3. ENTITY &amp; ANCHOR IDENTIFICATION</text>
+    <text class="step-desc" x="802" y="70">• Extract primary IP, Hostname, and User Account</text>
+    <text class="step-desc" x="802" y="84">• Establish relative temporal anchor timestamp (T0)</text>
+  </g>
+
+  <!-- ==================== PHASE 2: HYPOTHESIS & EVIDENCE GATHERING ==================== -->
+  <g transform="translate(40, 205)">
+    <rect class="zone-box" width="1120" height="115" fill="#ebf8ff" stroke="#bee3f8" />
+    <text class="phase-title" x="20" y="22" fill="#2b6cb0">PHASE 2: HYPOTHESIS FORMULATION &amp; INITIAL EVIDENCE</text>
+
+    <rect class="node-card" x="30" y="35" width="520" height="65" fill="#ffffff" stroke="#3182ce" />
+    <text class="step-title" x="42" y="55">4. CONTEXTUAL PAYLOAD EXTRACTION</text>
+    <text class="step-desc" x="42" y="70">• Inspect trigger event details: Source IP, Destination Port, URL/Path</text>
+    <text class="step-desc" x="42" y="84">• Extract correlation keys: ProcessGuid, ZeekUID, FlowID, Postfix QueueID</text>
+
+    <rect class="node-card" x="590" y="35" width="500" height="65" fill="#ffffff" stroke="#3182ce" />
+    <text class="step-title" x="602" y="55">5. FORMULATE INVESTIGATIVE HYPOTHESES</text>
+    <text class="step-desc" x="602" y="70">• H1: Was malicious code executed on the endpoint?</text>
+    <text class="step-desc" x="602" y="84">• H2: Did external C2 connection succeed? | H3: Has data been exfiltrated?</text>
+  </g>
+
+  <!-- ==================== PHASE 3: LOGGER DEEP SEARCH & PIVOTS ==================== -->
+  <g transform="translate(40, 335)">
+    <rect class="zone-box" width="1120" height="145" fill="#faf5ff" stroke="#e9d8fd" />
+    <text class="phase-title" x="20" y="22" fill="#6b46c1">PHASE 3: LOGGER DEEP FORENSIC SEARCH &amp; CROSS-TELEMETRY PIVOTS</text>
+
+    <!-- SEARCH BOX -->
+    <rect class="node-card" x="30" y="35" width="240" height="95" fill="#ffffff" stroke="#805ad5" />
+    <text class="step-title" x="40" y="55">LOGGER AD-HOC SEARCH</text>
+    <text class="step-desc" x="40" y="70">• Narrow search: T0 +/- 10m</text>
+    <text class="step-desc" x="40" y="84">• Filter by Target IP / Host</text>
+    <text class="step-desc" x="40" y="98">• Expand to antecedent logs</text>
+    <text class="step-desc" x="40" y="112">• Query CEF field indices</text>
+
+    <!-- PIVOT: NETWORK -->
+    <rect class="node-card" x="300" y="35" width="240" height="95" fill="#ffffff" stroke="#805ad5" />
+    <text class="step-title" x="310" y="55">NETWORK TELEMETRY PIVOT</text>
+    <text class="step-desc" x="310" y="70">• Suricata IPS (SID Signatures)</text>
+    <text class="step-desc" x="310" y="84">• Zeek conn.log &amp; dns.log</text>
+    <text class="step-desc" x="310" y="98">• Volumetric byte tracking</text>
+    <text class="step-desc" x="310" y="112">• Validate Reverse Shell / Exfil</text>
+
+    <!-- PIVOT: ENDPOINT -->
+    <rect class="node-card" x="570" y="35" width="250" height="95" fill="#ffffff" stroke="#805ad5" />
+    <text class="step-title" x="580" y="55">ENDPOINT AUDIT PIVOT</text>
+    <text class="step-desc" x="580" y="70">• Sysmon Event ID 1 (Lineage)</text>
+    <text class="step-desc" x="580" y="84">• Trace ParentProcessGuid</text>
+    <text class="step-desc" x="580" y="98">• PowerShell 4104 (ScriptBlock)</text>
+    <text class="step-desc" x="580" y="112">• Discover Staging &amp; Discovery</text>
+
+    <!-- PIVOT: APPLICATION -->
+    <rect class="node-card" x="850" y="35" width="240" height="95" fill="#ffffff" stroke="#805ad5" />
+    <text class="step-title" x="860" y="55">APPLICATION / DB PIVOT</text>
+    <text class="step-desc" x="860" y="70">• Linux Auditd (-k web_exec)</text>
+    <text class="step-desc" x="860" y="84">• Track sudo docker exec</text>
+    <text class="step-desc" x="860" y="98">• MariaDB SERVER_AUDIT</text>
+    <text class="step-desc" x="860" y="112">• Identify Dumped SQL Tables</text>
+  </g>
+
+  <!-- ==================== PHASE 4: TIMELINE & ATTACK RECONSTRUCTION ==================== -->
+  <g transform="translate(40, 495)">
+    <rect class="zone-box" width="1120" height="120" fill="#fefcbf" stroke="#ecc94b" />
+    <text class="phase-title" x="20" y="22" fill="#b7791f">PHASE 4: TIMELINE ASSEMBLY &amp; ATTACK RECONSTRUCTION</text>
+
+    <rect class="node-card" x="30" y="35" width="340" height="70" fill="#ffffff" stroke="#d69e2e" />
+    <text class="step-title" x="42" y="55">CHRONOLOGICAL TIMELINE</text>
+    <text class="step-desc" x="42" y="70">• Normalize timestamps across heterogeneous sources</text>
+    <text class="step-desc" x="42" y="84">• Separate observed facts from analytical inferences</text>
+
+    <rect class="node-card" x="410" y="35" width="340" height="70" fill="#ffffff" stroke="#d69e2e" />
+    <text class="step-title" x="422" y="55">MULTI-SOURCE CORRELATION</text>
+    <text class="step-desc" x="422" y="70">• Join perimeter download, host execution &amp; C2 callback</text>
+    <text class="step-desc" x="422" y="84">• Update hypothesis statuses: SUPPORTED / REFUTED</text>
+
+    <rect class="node-card" x="790" y="35" width="300" height="70" fill="#ffffff" stroke="#d69e2e" />
+    <text class="step-title" x="802" y="55">ATTACK CHAIN MAPPING</text>
+    <text class="step-desc" x="802" y="70">• Reconstruct end-to-end 11-stage MITRE kill chain</text>
+    <text class="step-desc" x="802" y="84">• Determine exact intrusion velocity &amp; impact</text>
+  </g>
+
+  <!-- ==================== PHASE 5: SCOPE ASSESSMENT & CONTAINMENT ==================== -->
+  <g transform="translate(40, 630)">
+    <rect class="zone-box" width="1120" height="120" fill="#fffaf0" stroke="#fbd38d" />
+    <text class="phase-title" x="20" y="22" fill="#dd6b20">PHASE 5: BLAST RADIUS ASSESSMENT &amp; VALIDATED CONTAINMENT</text>
+
+    <rect class="node-card" x="30" y="35" width="340" height="70" fill="#ffffff" stroke="#dd6b20" />
+    <text class="step-title" x="42" y="55">SCOPE &amp; BLAST RADIUS AUDIT</text>
+    <text class="step-desc" x="42" y="70">• Audit lateral spread (Ligolo tunnel, SSH to DMZ)</text>
+    <text class="step-desc" x="42" y="84">• Determine compromised credentials (user thanh, DB user)</text>
+
+    <rect class="node-card" x="410" y="35" width="340" height="70" fill="#ffffff" stroke="#dd6b20" />
+    <text class="step-title" x="422" y="55">INCIDENT CONTAINMENT</text>
+    <text class="step-desc" x="422" y="70">• Quarantine host at virtual switch port</text>
+    <text class="step-desc" x="422" y="84">• Terminate rogue process trees &amp; deploy firewall blocks</text>
+
+    <rect class="node-card" x="790" y="35" width="300" height="70" fill="#ffffff" stroke="#dd6b20" />
+    <text class="step-title" x="802" y="55">CONTAINMENT VALIDATION</text>
+    <text class="step-desc" x="802" y="70">• Query post-remediation pfSense Filterlog</text>
+    <text class="step-desc" x="802" y="84">• Confirm dropped connection attempts (action=block)</text>
+  </g>
+
+  <!-- ==================== PHASE 6: POST-INCIDENT DETECTION ENGINEERING ==================== -->
+  <g transform="translate(40, 765)">
+    <rect class="zone-box" width="1120" height="110" fill="#f0fff4" stroke="#9ae6b4" />
+    <text class="phase-title" x="20" y="22" fill="#276749">PHASE 6: POST-INCIDENT HARDENING &amp; DETECTION IMPROVEMENT</text>
+
+    <rect class="node-card" x="30" y="32" width="340" height="65" fill="#ffffff" stroke="#38a169" />
+    <text class="step-title" x="42" y="52">ADDRESS TELEMETRY GAPS</text>
+    <text class="step-desc" x="42" y="66">• Mitigate same-L2 blind spots via host iptables</text>
+    <text class="step-desc" x="42" y="80">• Enforce PowerShell ScriptBlock auditing via GPO</text>
+
+    <rect class="node-card" x="410" y="32" width="340" height="65" fill="#ffffff" stroke="#38a169" />
+    <text class="step-title" x="422" y="52">TUNE ACTIVE CHANNELS</text>
+    <text class="step-desc" x="422" y="66">• Suppress persistent reverse shell floods (Name != A04*)</text>
+    <text class="step-desc" x="422" y="80">• Protect operator triage capacity from alarm fatigue</text>
+
+    <rect class="node-card" x="790" y="32" width="300" height="65" fill="#ffffff" stroke="#38a169" />
+    <text class="step-title" x="802" y="52">PREVENTATIVE HARDENING</text>
+    <text class="step-desc" x="802" y="66">• De-associate .hta from mshta.exe</text>
+    <text class="step-desc" x="802" y="80">• Revoke passwordless sudo docker rights on WEB01</text>
+  </g>
+
+  <!-- PROGRESSION ARROWS BETWEEN PHASES -->
+  <path class="workflow-arrow" d="M 600 190 L 600 205" />
+  <path class="workflow-arrow" d="M 600 320 L 600 335" />
+  <path class="workflow-arrow" d="M 600 480 L 600 495" />
+  <path class="workflow-arrow" d="M 600 615 L 600 630" />
+  <path class="workflow-arrow" d="M 600 750 L 600 765" />
+
+  <!-- Footer -->
+  <text x="40" y="905" font-family="'Segoe UI', sans-serif" font-size="11" fill="#a0aec0">Enterprise SOC Lab Portfolio • Architecture Level 5 Specification • Closed-Loop Evidence-Driven Incident Investigation Workflow</text>
+</svg>

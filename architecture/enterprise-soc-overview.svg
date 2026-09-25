@@ -1,0 +1,218 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-weight: 700; font-size: 22px; fill: #1a202c; }
+      .subtitle { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-size: 13px; fill: #718096; }
+      .zone-title { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
+      .node-title { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-weight: 600; font-size: 13px; fill: #1a202c; }
+      .node-desc { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-size: 11px; fill: #4a5568; }
+      .edge-label { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-size: 11px; font-weight: 500; fill: #4a5568; }
+      .zone-box { rx: 8; stroke-width: 1.5; stroke-dasharray: 4,4; }
+      .node-card { rx: 6; stroke-width: 1.5; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06)); }
+      .flow-arrow { stroke-width: 2; fill: none; marker-end: url(#arrow-head); }
+      .telemetry-arrow { stroke-width: 1.5; stroke-dasharray: 5,4; fill: none; marker-end: url(#arrow-telemetry); }
+    </style>
+
+    <marker id="arrow-head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#4a5568" />
+    </marker>
+    <marker id="arrow-telemetry" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#805ad5" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="900" fill="#f8fafc" />
+
+  <!-- Header -->
+  <g transform="translate(40, 35)">
+    <text class="title" x="0" y="0">ENTERPRISE SOC LAB — TOPOLOGY & ARCHITECTURE BLUEPRINT</text>
+    <text class="subtitle" x="0" y="20">Level 1: System-Wide Topological Blueprint &amp; Multi-Tier Telemetry Integration (RFC 5737 &amp; RFC 1918 Sanitized)</text>
+  </g>
+
+  <!-- ==================== LEFT COLUMN: PRODUCTION & SECURITY ZONES ==================== -->
+
+  <!-- EXTERNAL ZONE -->
+  <g transform="translate(40, 75)">
+    <rect class="zone-box" width="680" height="110" fill="#fff5f5" stroke="#feb2b2" />
+    <text class="zone-title" x="15" y="22" fill="#c53030">EXTERNAL / WAN ZONE (203.0.113.0/24 — RFC 5737 TEST-NET-3)</text>
+    
+    <!-- KALI ATTACKER -->
+    <rect class="node-card" x="20" y="35" width="200" height="60" fill="#ffffff" stroke="#e53e3e" />
+    <text class="node-title" x="30" y="55">KALI-ATTACKER</text>
+    <text class="node-desc" x="30" y="70">203.0.113.25 (Adversary Host)</text>
+    <text class="node-desc" x="30" y="84">HTTP / Reverse Shell / Netcat</text>
+
+    <!-- PUBLIC DNS -->
+    <rect class="node-card" x="240" y="35" width="200" height="60" fill="#ffffff" stroke="#e53e3e" />
+    <text class="node-title" x="250" y="55">DNS-PUB01 (BIND9)</text>
+    <text class="node-desc" x="250" y="70">203.0.113.53 (Authoritative)</text>
+    <text class="node-desc" x="250" y="84">Public Resolution soclab.test</text>
+
+    <!-- FORWARD PROXY -->
+    <rect class="node-card" x="460" y="35" width="200" height="60" fill="#ffffff" stroke="#e53e3e" />
+    <text class="node-title" x="470" y="55">FORWARD-PROXY</text>
+    <text class="node-desc" x="470" y="70">203.0.113.252:8132</text>
+    <text class="node-desc" x="470" y="84">Outbound Inspection Proxy</text>
+  </g>
+
+  <!-- PERIMETER GATEWAY & TRANSIT -->
+  <g transform="translate(40, 210)">
+    <!-- PFSENSE FIREWALL -->
+    <rect class="node-card" x="140" y="0" width="400" height="65" fill="#ffffff" stroke="#dd6b20" />
+    <text class="node-title" x="155" y="24" fill="#c05621">PFSENSE-01 PERIMETER FIREWALL (WAN: 203.0.113.11 | Transit: 10.10.36.10)</text>
+    <text class="node-desc" x="155" y="42">Stateful Boundary Filter • Ingress DNAT/VIP • Egress Policy Enforcement • Filterlog</text>
+    <text class="node-desc" x="155" y="56">Static Route: 10.10.34.0/24 &amp; 10.10.35.0/24 via 10.10.36.11 (GW_SURICATA)</text>
+
+    <!-- TRANSIT ZONE BOX -->
+    <rect class="zone-box" x="80" y="80" width="520" height="50" fill="#fffaf0" stroke="#fbd38d" />
+    <text class="zone-title" x="95" y="100" fill="#dd6b20">SECURITY TRANSIT ZONE (10.10.36.0/24) — FORCED CHOKE POINT</text>
+    <text class="node-desc" x="95" y="118">Dedicated Inter-Router Segment (10.10.36.10 ◄──► 10.10.36.11) • Zero Host Endpoints • Zero Bypass</text>
+
+    <!-- SURICATA IPS -->
+    <rect class="node-card" x="100" y="145" width="480" height="70" fill="#ffffff" stroke="#38a169" />
+    <text class="node-title" x="115" y="170" fill="#276749">SURICATA-IPS01 (Core L3 Router &amp; Inline NFQUEUE IPS)</text>
+    <text class="node-desc" x="115" y="188">Transit: 10.10.36.11 | DMZ: 10.10.34.11 | Internal: 10.10.35.11 | net.ipv4.ip_forward=1</text>
+    <text class="node-desc" x="115" y="204">Inline Deep Packet Inspection (DPI) • Multi-interface Linux Gateway • eve.json Alert Stream</text>
+  </g>
+
+  <!-- DMZ ZONE -->
+  <g transform="translate(40, 450)">
+    <rect class="zone-box" width="320" height="230" fill="#ebf8ff" stroke="#bee3f8" />
+    <text class="zone-title" x="15" y="24" fill="#2b6cb0">DMZ ZONE (10.10.34.0/24) — GW: 10.10.34.11</text>
+    
+    <!-- WEB01 -->
+    <rect class="node-card" x="15" y="40" width="290" height="80" fill="#ffffff" stroke="#3182ce" />
+    <text class="node-title" x="25" y="62">WEB01 (Frappe HRMS Stack)</text>
+    <text class="node-desc" x="25" y="78">IP: 10.10.34.13 • Traefik / Nginx Proxy</text>
+    <text class="node-desc" x="25" y="93">Backend Containers (hrms-backend-1)</text>
+    <text class="node-desc" x="25" y="108">Linux Auditd (-k web_exec) &amp; Syslog</text>
+
+    <!-- MAIL01 -->
+    <rect class="node-card" x="15" y="135" width="290" height="80" fill="#ffffff" stroke="#3182ce" />
+    <text class="node-title" x="25" y="157">MAIL01 (Corporate Mail Gateway)</text>
+    <text class="node-desc" x="25" y="173">IP: 10.10.34.14 • Postfix SMTP / Dovecot</text>
+    <text class="node-desc" x="25" y="188">Webmail Client • Inbound Queue ID</text>
+    <text class="node-desc" x="25" y="203">Migrated from Internal to DMZ for Isolation</text>
+  </g>
+
+  <!-- INTERNAL ZONE -->
+  <g transform="translate(380, 450)">
+    <rect class="zone-box" width="340" height="230" fill="#ebf8ff" stroke="#bee3f8" />
+    <text class="zone-title" x="15" y="24" fill="#2b6cb0">INTERNAL CORE ZONE (10.10.35.0/24) — GW: 10.10.35.11</text>
+    
+    <!-- IT-ADMIN01 -->
+    <rect class="node-card" x="15" y="40" width="150" height="80" fill="#ffffff" stroke="#3182ce" />
+    <text class="node-title" x="22" y="60">IT-ADMIN01</text>
+    <text class="node-desc" x="22" y="75">10.10.35.18 (Victim)</text>
+    <text class="node-desc" x="22" y="89">Standalone Win10</text>
+    <text class="node-desc" x="22" y="103">Sysmon &amp; PS 4104</text>
+
+    <!-- DB01 -->
+    <rect class="node-card" x="175" y="40" width="150" height="80" fill="#ffffff" stroke="#3182ce" />
+    <text class="node-title" x="182" y="60">DB01 (Database)</text>
+    <text class="node-desc" x="182" y="75">10.10.35.19 (MariaDB)</text>
+    <text class="node-desc" x="182" y="89">iptables L2 Shield</text>
+    <text class="node-desc" x="182" y="103">SERVER_AUDIT</text>
+
+    <!-- DC01 -->
+    <rect class="node-card" x="15" y="135" width="150" height="80" fill="#ffffff" stroke="#3182ce" />
+    <text class="node-title" x="22" y="155">DC01 (AD / DNS)</text>
+    <text class="node-desc" x="22" y="170">10.10.35.12</text>
+    <text class="node-desc" x="22" y="184">Domain soclab.test</text>
+    <text class="node-desc" x="22" y="198">Windows Security</text>
+
+    <!-- WIN10 POOL -->
+    <rect class="node-card" x="175" y="135" width="150" height="80" fill="#ffffff" stroke="#3182ce" />
+    <text class="node-title" x="182" y="155">WIN10-01..03</text>
+    <text class="node-desc" x="182" y="170">.35.13, .16, .17</text>
+    <text class="node-desc" x="182" y="184">Domain Clients</text>
+    <text class="node-desc" x="182" y="198">Standard Workstations</text>
+  </g>
+
+  <!-- L2 NOTE -->
+  <g transform="translate(40, 695)">
+    <rect x="0" y="0" width="680" height="35" rx="4" fill="#fffaf0" stroke="#fbd38d" />
+    <text class="node-desc" x="12" y="16" fill="#744210" font-weight="600">CRITICAL LAYER-2 LIMITATION NOTE:</text>
+    <text class="node-desc" x="12" y="28" fill="#744210">Traffic between 10.10.35.x hosts switches directly at Layer 2 without hitting Suricata. DB01 relies on host iptables.</text>
+  </g>
+
+  <!-- OUT-OF-BAND MANAGEMENT -->
+  <g transform="translate(40, 745)">
+    <rect class="zone-box" width="680" height="65" fill="#f7fafc" stroke="#cbd5e0" />
+    <text class="zone-title" x="15" y="20" fill="#4a5568">MANAGEMENT PLANE (10.10.21.0/24) — OUT-OF-BAND BASTION</text>
+    <rect class="node-card" x="15" y="28" width="650" height="28" fill="#ffffff" stroke="#a0aec0" />
+    <text class="node-desc" x="25" y="47" font-weight="600">MGMT-JUMPHOST (10.10.21.100)</text>
+    <text class="node-desc" x="250" y="47">Out-of-band SSH/RDP to all hypervisors &amp; network interfaces (.21.10, .21.11, .21.31)</text>
+  </g>
+
+
+  <!-- ==================== RIGHT COLUMN: TELEMETRY & SIEM PIPELINE ==================== -->
+
+  <g transform="translate(750, 75)">
+    <rect class="zone-box" width="410" height="735" fill="#faf5ff" stroke="#e9d8fd" />
+    <text class="zone-title" x="20" y="25" fill="#6b46c1">TELEMETRY &amp; SIEM PLANE (LOGGING: 10.10.40.0/24)</text>
+
+    <!-- PASSIVE NDR: ZEEK -->
+    <rect class="node-card" x="20" y="45" width="370" height="75" fill="#ffffff" stroke="#805ad5" />
+    <text class="node-title" x="30" y="70" fill="#553c9e">ZEEK-NDR01 (Network Protocol Metadata)</text>
+    <text class="node-desc" x="30" y="88">SPAN Port Mirror / gretap interfaces • conn.log, dns.log</text>
+    <text class="node-desc" x="30" y="104">Session Tracking (ZeekUID) • Long-lived C2 &amp; Tunneling</text>
+
+    <!-- ARCSIGHT SMARTCONNECTOR -->
+    <rect class="node-card" x="20" y="145" width="370" height="150" fill="#ffffff" stroke="#805ad5" />
+    <text class="node-title" x="30" y="170" fill="#553c9e">ARCSIGHT SMARTCONNECTOR (10.10.40.4)</text>
+    <text class="node-desc" x="30" y="190" font-weight="600">Unified Ingestion Listeners &amp; CEF Normalization:</text>
+    <text class="node-desc" x="30" y="206">• UDP/5515 (Gen 2006): pfSense Filterlog CSV</text>
+    <text class="node-desc" x="30" y="220">• TCP/5521 (Gen 2002): Suricata EVE JSON</text>
+    <text class="node-desc" x="30" y="234">• UDP/5518 (Gen 2003): Zeek TSV Metadata</text>
+    <text class="node-desc" x="30" y="248">• UDP/5519 (Gen 2004): Web Nginx &amp; Linux Auditd</text>
+    <text class="node-desc" x="30" y="262">• UDP/5520 (Gen 2005): MariaDB SERVER_AUDIT</text>
+    <text class="node-desc" x="30" y="276">• WEC API (Gen 2009): Windows Security, Sysmon &amp; PS</text>
+
+    <!-- ARCSIGHT LOGGER -->
+    <rect class="node-card" x="20" y="325" width="370" height="110" fill="#ffffff" stroke="#805ad5" />
+    <text class="node-title" x="30" y="350" fill="#553c9e">ARCSIGHT LOGGER (10.10.40.5)</text>
+    <text class="node-desc" x="30" y="370">Immutable Long-Term Forensic Event Store</text>
+    <text class="node-desc" x="30" y="386">• High-Compression Storage Groups (10:1 ratio)</text>
+    <text class="node-desc" x="30" y="402">• Storage Data Validation (Periodic SHA-256 Block Hashes)</text>
+    <text class="node-desc" x="30" y="418">• Full Ad-Hoc SQL &amp; CEF Query Engine (NIST SP 800-86)</text>
+
+    <!-- ARCSIGHT ESM -->
+    <rect class="node-card" x="20" y="465" width="370" height="135" fill="#ffffff" stroke="#d53f8c" />
+    <text class="node-title" x="30" y="490" fill="#97266d">ARCSIGHT ESM CORRELATION ENGINE</text>
+    <text class="node-desc" x="30" y="510">Real-Time In-Memory Stateful Event Matching</text>
+    <text class="node-desc" x="30" y="526">• Atomic Rule Engine (A01 - A13)</text>
+    <text class="node-desc" x="30" y="542">• Composite Join Rule C01 (Ingress + Exec + Callback)</text>
+    <text class="node-desc" x="30" y="558">• Sliding Time Windows (Delta t &lt;= 20 minutes)</text>
+    <text class="node-desc" x="30" y="574">• Active Channel Grid with High-Volume Filtering</text>
+
+    <!-- SOC CLOSED-LOOP WORKFLOW -->
+    <rect class="node-card" x="20" y="625" width="370" height="85" fill="#ffffff" stroke="#319795" />
+    <text class="node-title" x="30" y="650" fill="#234e52">SOC INVESTIGATION &amp; CLOSED-LOOP ACTION</text>
+    <text class="node-desc" x="30" y="670">• Real-Time Incident Triage &amp; Evidence Pivoting</text>
+    <text class="node-desc" x="30" y="686">• Dynamic Process Tracing via Sysmon ProcessGuid</text>
+    <text class="node-desc" x="30" y="700">• Validated Host Quarantine &amp; Egress Rule Hardening</text>
+  </g>
+
+  <!-- DATA FLOW ARROWS -->
+  <path class="flow-arrow" d="M 340 185 L 340 210" stroke="#4a5568" />
+  <path class="flow-arrow" d="M 340 275 L 340 290" stroke="#4a5568" />
+  <path class="flow-arrow" d="M 340 340 L 340 355" stroke="#4a5568" />
+  <path class="flow-arrow" d="M 280 425 L 200 450" stroke="#4a5568" />
+  <path class="flow-arrow" d="M 400 425 L 500 450" stroke="#4a5568" />
+
+  <!-- TELEMETRY ARROWS INTO CONNECTOR -->
+  <path class="telemetry-arrow" d="M 540 230 C 660 230, 660 250, 770 250" stroke="#805ad5" />
+  <path class="telemetry-arrow" d="M 580 380 C 680 380, 680 270, 770 270" stroke="#805ad5" />
+  <path class="telemetry-arrow" d="M 720 530 C 740 530, 740 290, 770 290" stroke="#805ad5" />
+
+  <!-- PIPELINE ARROWS INSIDE SIEM -->
+  <path class="flow-arrow" d="M 935 120 L 935 145" stroke="#805ad5" />
+  <path class="flow-arrow" d="M 935 295 L 935 325" stroke="#805ad5" />
+  <path class="flow-arrow" d="M 935 435 L 935 465" stroke="#805ad5" />
+  <path class="flow-arrow" d="M 935 600 L 935 625" stroke="#319795" />
+
+  <!-- FOOTER -->
+  <text x="40" y="855" font-family="'Segoe UI', sans-serif" font-size="11" fill="#a0aec0">Enterprise SOC Lab Portfolio • Architecture Level 1 Specification • Verified Empirical Baseline (ArcSight ESM + Logger + pfSense + Suricata)</text>
+</svg>

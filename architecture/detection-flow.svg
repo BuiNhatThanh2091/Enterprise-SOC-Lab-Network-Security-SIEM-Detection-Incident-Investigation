@@ -1,0 +1,226 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 950" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-weight: 700; font-size: 22px; fill: #1a202c; }
+      .subtitle { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-size: 13px; fill: #718096; }
+      .section-title { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
+      .card-title { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-weight: 700; font-size: 11.5px; fill: #1a202c; }
+      .card-desc { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-size: 10px; fill: #4a5568; line-height: 1.3; }
+      .zone-box { rx: 8; stroke-width: 1.5; stroke-dasharray: 4,4; }
+      .node-card { rx: 6; stroke-width: 1.5; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.04)); }
+      .flow-arrow { stroke-width: 1.5; fill: none; stroke: #4a5568; marker-end: url(#arrow-gray); }
+      .join-arrow { stroke-width: 2.5; stroke: #e53e3e; fill: none; stroke-dasharray: 5,3; marker-end: url(#arrow-red); }
+      .drill-arrow { stroke-width: 2; stroke: #319795; fill: none; stroke-dasharray: 4,3; marker-end: url(#arrow-teal); }
+    </style>
+
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#4a5568" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#e53e3e" />
+    </marker>
+    <marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#319795" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="950" fill="#f8fafc" />
+
+  <!-- Header -->
+  <g transform="translate(40, 35)">
+    <text class="title" x="0" y="0">DETECTION ENGINEERING &amp; CORRELATION DEPENDENCY GRAPH</text>
+    <text class="subtitle" x="0" y="20">Level 4: Mapping 7 Telemetry Source Systems to 13 Atomic Rules (A01 - A13) and ArcSight ESM Composite Correlation (C01)</text>
+  </g>
+
+  <!-- ==================== TIER 1: TELEMETRY PRODUCERS ==================== -->
+  <g transform="translate(40, 75)">
+    <rect class="zone-box" width="1120" height="90" fill="#ebf8ff" stroke="#bee3f8" />
+    <text class="section-title" x="20" y="22" fill="#2b6cb0">TELEMETRY PRODUCING SENSORS (INPUT LAYER)</text>
+
+    <rect class="node-card" x="20" y="32" width="145" height="46" fill="#ffffff" stroke="#3182ce" />
+    <text class="card-title" x="30" y="50">MAIL01: Postfix</text>
+    <text class="card-desc" x="30" y="66">Queue ID, recipient</text>
+
+    <rect class="node-card" x="180" y="32" width="145" height="46" fill="#ffffff" stroke="#3182ce" />
+    <text class="card-title" x="190" y="50">SURICATA-IPS01</text>
+    <text class="card-desc" x="190" y="66">SID Signatures &amp; Flow</text>
+
+    <rect class="node-card" x="340" y="32" width="145" height="46" fill="#ffffff" stroke="#3182ce" />
+    <text class="card-title" x="350" y="50">IT-ADMIN: Sysmon</text>
+    <text class="card-desc" x="350" y="66">Event ID 1 &amp; 3 (GUID)</text>
+
+    <rect class="node-card" x="500" y="32" width="145" height="46" fill="#ffffff" stroke="#3182ce" />
+    <text class="card-title" x="510" y="50">ZEEK-SENSOR01</text>
+    <text class="card-desc" x="510" y="66">conn.log (ZeekUID)</text>
+
+    <rect class="node-card" x="660" y="32" width="145" height="46" fill="#ffffff" stroke="#3182ce" />
+    <text class="card-title" x="670" y="50">IT-ADMIN: PowerShell</text>
+    <text class="card-desc" x="670" y="66">ScriptBlock ID 4104</text>
+
+    <rect class="node-card" x="820" y="32" width="135" height="46" fill="#ffffff" stroke="#3182ce" />
+    <text class="card-title" x="830" y="50">WEB01: Auditd</text>
+    <text class="card-desc" x="830" y="66">-k web_exec tag</text>
+
+    <rect class="node-card" x="970" y="32" width="130" height="46" fill="#ffffff" stroke="#3182ce" />
+    <text class="card-title" x="980" y="50">DB01: MariaDB</text>
+    <text class="card-desc" x="980" y="66">SERVER_AUDIT</text>
+  </g>
+
+  <!-- ==================== TIER 2: ATOMIC DETECTION RULES A01 - A13 ==================== -->
+  <g transform="translate(40, 195)">
+    <rect class="zone-box" width="1120" height="340" fill="#faf5ff" stroke="#e9d8fd" />
+    <text class="section-title" x="20" y="22" fill="#6b46c1">ATOMIC DETECTION RULE INVENTORY (ARCSIGHT ESM SINGLE-EVENT EVALUATION)</text>
+
+    <!-- COLUMN 1: INITIAL ACCESS & EXECUTION (A01 - A04) -->
+    <g transform="translate(20, 35)">
+      <!-- A01 -->
+      <rect class="node-card" x="0" y="0" width="255" height="65" fill="#ffffff" stroke="#718096" />
+      <text class="card-title" x="12" y="20">A01: Mail Delivered to User</text>
+      <text class="card-desc" x="12" y="36">Postfix delivery to user01@soclab.test</text>
+      <text class="card-desc" x="12" y="50">Queue ID 718FC8006A • Contextual Baseline</text>
+
+      <!-- A02 -->
+      <rect class="node-card" x="0" y="75" width="255" height="65" fill="#ffffff" stroke="#e53e3e" />
+      <text class="card-title" x="12" y="95" fill="#c53030">A02: Suspicious Web Download</text>
+      <text class="card-desc" x="12" y="111">Suricata SID 1101002 (Inbound ZIP)</text>
+      <text class="card-desc" x="12" y="125">HTTP GET from 203.0.113.25:80</text>
+
+      <!-- A03 -->
+      <rect class="node-card" x="0" y="150" width="255" height="65" fill="#ffffff" stroke="#e53e3e" />
+      <text class="card-title" x="12" y="170" fill="#c53030">A03: Suspicious Script Execution</text>
+      <text class="card-desc" x="12" y="186">Sysmon ID 1: mshta.exe executing .hta</text>
+      <text class="card-desc" x="12" y="200">Spawns cmd.exe ──► powershell.exe (-enc)</text>
+
+      <!-- A04 -->
+      <rect class="node-card" x="0" y="225" width="255" height="65" fill="#ffffff" stroke="#e53e3e" />
+      <text class="card-title" x="12" y="245" fill="#c53030">A04: Suspicious Outbound Callback</text>
+      <text class="card-desc" x="12" y="261">Zeek conn.log / Sysmon 3: TCP/4444</text>
+      <text class="card-desc" x="12" y="275">Reverse Shell Foothold • Duration &gt; 1800s</text>
+    </g>
+
+    <!-- COLUMN 2: RECONNAISSANCE & CREDENTIAL ACCESS (A05 - A08) -->
+    <g transform="translate(295, 35)">
+      <!-- A05 -->
+      <rect class="node-card" x="0" y="0" width="255" height="65" fill="#ffffff" stroke="#dd6b20" />
+      <text class="card-title" x="12" y="20">A05: Post-Compromise Discovery Burst</text>
+      <text class="card-desc" x="12" y="36">Sysmon ID 1: where ssh, sc, netstat, qwinsta</text>
+      <text class="card-desc" x="12" y="50">Threshold: &gt;= 3 events / 5 min</text>
+
+      <!-- A06 -->
+      <rect class="node-card" x="0" y="75" width="255" height="65" fill="#ffffff" stroke="#805ad5" />
+      <text class="card-title" x="12" y="95">A06: Credential Material Collection</text>
+      <text class="card-desc" x="12" y="111">Sysmon ID 1: xcopy.exe Firefox\Profiles</text>
+      <text class="card-desc" x="12" y="125">Staging path: C:\Users\Public\firefox_profile\</text>
+
+      <!-- A07 -->
+      <rect class="node-card" x="0" y="150" width="255" height="65" fill="#ffffff" stroke="#805ad5" />
+      <text class="card-title" x="12" y="170">A07: Suspicious Data Staging / Socket</text>
+      <text class="card-desc" x="12" y="186">PowerShell 4104: Compress-Archive</text>
+      <text class="card-desc" x="12" y="200">Raw .NET TcpClient stream to port 9999</text>
+
+      <!-- A08 -->
+      <rect class="node-card" x="0" y="225" width="255" height="65" fill="#ffffff" stroke="#805ad5" />
+      <text class="card-title" x="12" y="245">A08: Suspicious Tool Transfer / Exec</text>
+      <text class="card-desc" x="12" y="261">PowerShell 4104: Invoke-WebRequest</text>
+      <text class="card-desc" x="12" y="275">Downloads &amp; launches agent.exe (Ligolo)</text>
+    </g>
+
+    <!-- COLUMN 3: LATERAL MOVEMENT & APPLICATION TARGETING (A09 - A11) -->
+    <g transform="translate(570, 35)">
+      <!-- A09 -->
+      <rect class="node-card" x="0" y="0" width="255" height="65" fill="#ffffff" stroke="#319795" />
+      <text class="card-title" x="12" y="20">A09: Suspicious External Tunnel</text>
+      <text class="card-desc" x="12" y="36">Sysmon ID 3 / Zeek: TCP/11601</text>
+      <text class="card-desc" x="12" y="50">Ligolo-ng multiplexed reverse tunnel</text>
+
+      <!-- A10 -->
+      <rect class="node-card" x="0" y="75" width="255" height="65" fill="#ffffff" stroke="#718096" />
+      <text class="card-title" x="12" y="95">A10: Inter-Zone Remote Access (SSH)</text>
+      <text class="card-desc" x="12" y="111">Suricata / auth.log: SSH TCP/22 to WEB01</text>
+      <text class="card-desc" x="12" y="125">10.10.35.18 ──► 10.10.34.13:22 (User: thanh)</text>
+
+      <!-- A11 -->
+      <rect class="node-card" x="0" y="150" width="255" height="65" fill="#ffffff" stroke="#319795" />
+      <text class="card-title" x="12" y="170">A11: Sensitive Privileged Web Exec</text>
+      <text class="card-desc" x="12" y="186">Linux Auditd: sudo docker exec</text>
+      <text class="card-desc" x="12" y="200">Extracts site_config.json DB credentials</text>
+    </g>
+
+    <!-- COLUMN 4: DATABASE & EXFILTRATION (A12 - A13) -->
+    <g transform="translate(845, 35)">
+      <!-- A12 -->
+      <rect class="node-card" x="0" y="0" width="255" height="95" fill="#ffffff" stroke="#d53f8c" />
+      <text class="card-title" x="12" y="22" fill="#97266d">A12: Suspicious DB Collection</text>
+      <text class="card-desc" x="12" y="38">MariaDB SERVER_AUDIT</text>
+      <text class="card-desc" x="12" y="52">SHOW DATABASES &amp; mysqldump</text>
+      <text class="card-desc" x="12" y="66">Threshold: &gt;= 2 events / 5 min</text>
+      <text class="card-desc" x="12" y="80">Extracts table tabEmployee (4.1 MB)</text>
+
+      <!-- A13 -->
+      <rect class="node-card" x="0" y="115" width="255" height="95" fill="#ffffff" stroke="#c53030" />
+      <text class="card-title" x="12" y="137" fill="#c53030">A13: Suspicious DMZ Exfil Transfer</text>
+      <text class="card-desc" x="12" y="153">Suricata Custom Signature SID 1101021</text>
+      <text class="card-desc" x="12" y="167">Large outbound TCP stream to port 9999</text>
+      <text class="card-desc" x="12" y="181">4.19 MB exfiltrated in 3.42 seconds</text>
+      <text class="card-desc" x="12" y="195">Scenario-Dependent Signature Rule</text>
+    </g>
+  </g>
+
+  <!-- ==================== TIER 3: ARCSIGHT ESM COMPOSITE CORRELATION (C01) ==================== -->
+  <g transform="translate(40, 560)">
+    <rect class="zone-box" width="1120" height="150" fill="#fff5f5" stroke="#feb2b2" />
+    <text class="section-title" x="20" y="24" fill="#c53030">COMPOSITE MULTI-SOURCE CORRELATION ENGINE (ARCSIGHT ESM IN-MEMORY JOIN)</text>
+
+    <!-- C01 CARD -->
+    <rect class="node-card" x="30" y="38" width="1060" height="95" fill="#ffffff" stroke="#e53e3e" stroke-width="2" />
+    <text class="node-title" x="45" y="65" font-size="15" fill="#c53030">C01: INITIAL COMPROMISE CORRELATION (SEVERITY 9 — CRITICAL INCIDENT)</text>
+    <text class="card-desc" x="45" y="85" font-size="11.5" font-weight="600">Stateful Composite Join across 3 Independent Telemetry Subsystems:</text>
+    <text class="card-desc" x="45" y="103">Trigger 1: Ingress Download (A02: Suricata SID 1101002) ──► Trigger 2: Host Execution (A03: Sysmon mshta.exe) ──► Trigger 3: Callback (A04: Zeek TCP/4444)</text>
+    <text class="card-desc" x="45" y="120">Correlation Condition: SourceAddress = 10.10.35.18 | Hostname = IT-ADMIN | Sliding Window: Delta t &lt;= 20 minutes | Near-Zero False Positives</text>
+  </g>
+
+  <!-- ==================== TIER 4: INCIDENT DISPATCH & DRILL-DOWN PIVOTS ==================== -->
+  <g transform="translate(40, 735)">
+    <rect class="zone-box" width="1120" height="150" fill="#f0fff4" stroke="#9ae6b4" />
+    <text class="section-title" x="20" y="22" fill="#276749">SOC INVESTIGATION PIVOT PATHS (FROM C01 INITIAL SIGNAL TO CAMPAIGN SCOPE)</text>
+
+    <rect class="node-card" x="30" y="38" width="240" height="95" fill="#ffffff" stroke="#38a169" />
+    <text class="card-title" x="40" y="60">PIVOT 1: INGRESS BACKTRACK</text>
+    <text class="card-desc" x="40" y="78">From C01 ──► A02 URL</text>
+    <text class="card-desc" x="40" y="94">──► Postfix A01 (QueueID 718FC8006A)</text>
+    <text class="card-desc" x="40" y="110">Confirms Phishing Delivery Vector</text>
+
+    <rect class="node-card" x="310" y="38" width="260" height="95" fill="#ffffff" stroke="#38a169" />
+    <text class="card-title" x="320" y="60">PIVOT 2: RECON &amp; STAGING</text>
+    <text class="card-desc" x="320" y="78">From C01 Reverse Shell</text>
+    <text class="card-desc" x="320" y="94">──► Discovery Burst A05</text>
+    <text class="card-desc" x="320" y="110">──► Firefox xcopy A06 &amp; Staging A07</text>
+
+    <rect class="node-card" x="610" y="38" width="250" height="95" fill="#ffffff" stroke="#38a169" />
+    <text class="card-title" x="620" y="60">PIVOT 3: LATERAL TRAVERSAL</text>
+    <text class="card-desc" x="620" y="78">From Tool Ingress A08</text>
+    <text class="card-desc" x="620" y="94">──► Ligolo Tunnel A09 &amp; SSH A10</text>
+    <text class="card-desc" x="620" y="110">──► Container Sudo Exec A11</text>
+
+    <rect class="node-card" x="900" y="38" width="190" height="95" fill="#ffffff" stroke="#38a169" />
+    <text class="card-title" x="910" y="60">PIVOT 4: EXFIL AUDIT</text>
+    <text class="card-desc" x="910" y="78">From DB Dump A12</text>
+    <text class="card-desc" x="910" y="94">──► DMZ Netcat A13</text>
+    <text class="card-desc" x="910" y="110">Validates Impact Scope</text>
+  </g>
+
+  <!-- CORRELATION JOIN ARROWS (RED DASHED) -->
+  <path class="join-arrow" d="M 180 370 C 180 470, 400 500, 500 560" />
+  <path class="join-arrow" d="M 180 445 C 180 500, 500 520, 570 560" />
+  <path class="join-arrow" d="M 180 520 C 180 550, 600 540, 650 560" />
+
+  <!-- INVESTIGATION DRILL ARROWS (TEAL DASHED) -->
+  <path class="drill-arrow" d="M 570 710 L 150 770" />
+  <path class="drill-arrow" d="M 570 710 L 440 770" />
+  <path class="drill-arrow" d="M 570 710 L 735 770" />
+  <path class="drill-arrow" d="M 570 710 L 995 770" />
+
+  <!-- Footer -->
+  <text x="40" y="915" font-family="'Segoe UI', sans-serif" font-size="11" fill="#a0aec0">Enterprise SOC Lab Portfolio • Architecture Level 4 Specification • Real-Time Correlation &amp; Full-Lifecycle Detection Graph</text>
+</svg>

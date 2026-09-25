@@ -1,0 +1,90 @@
+graph TD
+    %% -------------------------------------------------------------
+    %% ENTERPRISE SOC LAB — OVERVIEW ARCHITECTURE DIAGRAM
+    %% Public Sanitized Architecture (RFC 5737 & RFC 1918)
+    %% -------------------------------------------------------------
+
+    subgraph EXT["EXTERNAL / WAN ZONE (203.0.113.0/24)"]
+        KALI["KALI-ATTACKER<br/>203.0.113.25<br/>(Adversary Host)"]
+        DNSPUB["DNS-PUB01<br/>203.0.113.53<br/>(Public Authoritative DNS)"]
+        PROXY["FORWARD-PROXY<br/>203.0.113.252:8132<br/>(Outbound Web Proxy)"]
+        VIP_WEB["Public VIP (Web)<br/>203.0.113.13:80,443"]
+        VIP_MAIL["Public VIP (Mail)<br/>203.0.113.14:25,587"]
+    end
+
+    subgraph PERIMETER["PERIMETER NETWORK SECURITY"]
+        PFSENSE["PFSENSE-01 Firewall<br/>WAN: 203.0.113.11<br/>Transit: 10.10.36.10<br/>Stateful Filter & NAT"]
+    end
+
+    subgraph TRANSIT["SECURITY TRANSIT ZONE (10.10.36.0/24)"]
+        TRANSIT_LINK["Point-to-Point Transit Segment<br/>pfSense (10.10.36.10) to Suricata (10.10.36.11)<br/>Zero User Endpoints / Zero Direct Bypass"]
+    end
+
+    subgraph CORE_SEC["CORE NETWORK SECURITY & ROUTING"]
+        SURICATA["SURICATA-IPS01<br/>Transit: 10.10.36.11 | Internal: 10.10.35.11 | DMZ: 10.10.34.11<br/>Linux IP Forwarding + NFQUEUE Inline DPI (Fail-Close)"]
+    end
+
+    subgraph DMZ["DMZ ZONE (10.10.34.0/24) - Gateway: 10.10.34.11"]
+        WEB["WEB01<br/>10.10.34.13<br/>Frappe HRMS Docker Stack<br/>Traefik / Nginx / Auditd"]
+        MAIL["MAIL01<br/>10.10.34.14<br/>Postfix SMTP / Dovecot IMAP<br/>Roundcube Webmail"]
+    end
+
+    subgraph INTERNAL["INTERNAL ZONE (10.10.35.0/24) - Gateway: 10.10.35.11"]
+        DC["DC01<br/>10.10.35.12<br/>Windows Server 2019<br/>AD Domain soclab.test & LDAPS"]
+        DB["DB01<br/>10.10.35.19<br/>MariaDB 10.11 Server<br/>iptables L2 Shield & Audit"]
+        ITADMIN["IT-ADMIN01<br/>10.10.35.18<br/>Standalone Win10 Pro<br/>Sysmon & PowerShell 4104"]
+        WIN10["WIN10-01..03<br/>10.10.35.13, .16, .17<br/>Domain Workstations"]
+    end
+
+    subgraph NDR["PASSIVE NETWORK VISIBILITY (NDR)"]
+        ZEEK["ZEEK-NDR01<br/>Passive Protocol Metadata Extraction<br/>SPAN Port Mirroring & gretap Tunnels"]
+    end
+
+    subgraph TELEMETRY["TELEMETRY & SIEM PIPELINE (LOGGING ZONE: 10.10.40.0/24)"]
+        CONNECTOR["ArcSight SmartConnector (10.10.40.4)<br/>Multi-source Log Ingestion (UDP/TCP 5515-5521, WEC API 2009)<br/>CEF Field Normalization"]
+        LOGGER["ArcSight Logger (10.10.40.5)<br/>High-Compression Raw Storage & Forensic Search<br/>Storage Data Validation (SHA-256 Block Hashes)"]
+        ESM["ArcSight ESM<br/>Real-Time Stateful Correlation<br/>Rules A01-A13 & Correlation C01"]
+        CHANNELS["Active Channels Console<br/>Live SOC Alert Monitoring & Volume Filtering"]
+    end
+
+    subgraph MGMT["OUT-OF-BAND MANAGEMENT (10.10.21.0/24)"]
+        JUMPHOST["MGMT-JUMPHOST<br/>10.10.21.100<br/>Administrative Bastion"]
+    end
+
+    %% Data Plane Connections
+    EXT -->|"Inbound VIP Access"| PFSENSE
+    PFSENSE -->|"Forced Static Route"| TRANSIT_LINK
+    TRANSIT_LINK -->|"Inline NFQUEUE"| SURICATA
+    SURICATA -->|"Enforced DPI"| DMZ
+    SURICATA -->|"Enforced DPI"| INTERNAL
+
+    %% Outbound Egress
+    INTERNAL -.->|"Proxy Egress (:8132)"| SURICATA
+    DMZ -.->|"Proxy Egress (:8132)"| SURICATA
+    SURICATA -.->|"Transit Egress"| PFSENSE
+    PFSENSE -.->|"Outbound NAT"| PROXY
+
+    %% Passive Observation
+    TRANSIT_LINK -.->|"SPAN / Mirror"| ZEEK
+    DMZ -.->|"SPAN / Mirror"| ZEEK
+    INTERNAL -.->|"SPAN / Mirror"| ZEEK
+
+    %% Telemetry Flow
+    PFSENSE ==>|"Syslog UDP/5515"| CONNECTOR
+    SURICATA ==>|"eve.json TCP/5521"| CONNECTOR
+    ZEEK ==>|"TSV UDP/5518"| CONNECTOR
+    WEB ==>|"Access & Auditd UDP/5519"| CONNECTOR
+    DB ==>|"MariaDB Audit UDP/5520"| CONNECTOR
+    MAIL ==>|"Mail Syslog UDP/5516"| CONNECTOR
+    DNSPUB ==>|"DNS Query UDP/5517"| CONNECTOR
+    ITADMIN ==>|"WEC / Native XML API"| CONNECTOR
+    DC ==>|"AD Security XML API"| CONNECTOR
+
+    CONNECTOR ==>|"TLS TCP/443 SmartMessage"| LOGGER
+    LOGGER ==>|"Filtered Event Stream"| ESM
+    ESM ==>|"Dispatched Incidents"| CHANNELS
+
+    %% Out-of-band Management
+    JUMPHOST -.-|OOB SSH / WebGUI| PFSENSE
+    JUMPHOST -.-|OOB SSH| SURICATA
+    JUMPHOST -.-|OOB Mgmt TCP/91xx| CONNECTOR

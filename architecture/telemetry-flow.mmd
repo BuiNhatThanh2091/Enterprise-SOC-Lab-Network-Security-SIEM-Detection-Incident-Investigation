@@ -1,0 +1,85 @@
+graph TD
+    %% -------------------------------------------------------------
+    %% FULL-STACK TELEMETRY & SIEM EVIDENCE FLOW
+    %% Demonstrates:
+    %% 1. Raw Telemetry Generation across 8 confirmed source groups
+    %% 2. SmartConnector Ingestion & CEF Normalization Subsystem
+    %% 3. Decoupled SIEM Processing: ArcSight Logger vs ArcSight ESM
+    %% 4. Closed-Loop Detection, Triage, and Forensic Investigation
+    %% -------------------------------------------------------------
+
+    subgraph SOURCES["MULTI-TIER TELEMETRY SOURCES"]
+        PFSENSE["PFSENSE-01<br/>Perimeter CSV Filterlog<br/>(src, dst, spt, dpt, action)"]
+        SURICATA["SURICATA-IPS01<br/>eve.json Alerts & Flows<br/>(SID, flow_id, signature)"]
+        ZEEK["ZEEK-NDR01<br/>TSV Protocol Logs (rsyslog)<br/>(conn.log, dns.log, ZeekUID)"]
+        WEB["WEB01<br/>Nginx Access & Linux Auditd<br/>(HTTP status, sudo, -k web_exec)"]
+        DB["DB01<br/>MariaDB SERVER_AUDIT<br/>(raw SQL query, table, user)"]
+        MAIL["MAIL01<br/>Postfix Mail Syslog<br/>(Queue ID, recipient, sent)"]
+        DNS["DNS-PUB01<br/>BIND9 Query Syslog<br/>(client IP, requestUrl, record)"]
+        WIN["IT-ADMIN01 & DC01<br/>Windows Event Forwarding (WEC)<br/>(Sysmon ID 1/3, PS 4104, AD Sec)"]
+    end
+
+    subgraph COLLECTION["INGESTION & CEF NORMALIZATION (LOGGING ZONE: 10.10.40.4)"]
+        SC_PF["Gen ID 2006: UDP/5515<br/>(Filterlog CSV Parser)"]
+        SC_SUR["Gen ID 2002: TCP/5521<br/>(Suricata JSON Parser)"]
+        SC_ZEEK["Gen ID 2003: UDP/5518<br/>(Zeek TSV Parser)"]
+        SC_WEB["Gen ID 2004: UDP/5519<br/>(Web & Auditd Parser)"]
+        SC_DB["Gen ID 2005: UDP/5520<br/>(MariaDB Audit Parser)"]
+        SC_MAIL["Gen ID 2007: UDP/5516<br/>(Postfix Syslog Parser)"]
+        SC_DNS["Gen ID 2008: UDP/5517<br/>(BIND9 DNS Parser)"]
+        SC_WIN["Gen ID 2009: WEC API<br/>(Windows XML Parser)"]
+        
+        CEF_ENGINE["ArcSight FlexConnector Normalization Engine<br/>• Maps to Common Event Format (CEF)<br/>• Preserves Keys: ProcessGuid, QueueID, ZeekUID, FlowID<br/>• Encapsulates into TLS Binary SmartMessages"]
+    end
+
+    subgraph SIEM_STORAGE["STORAGE & FORENSIC PIPELINE (10.10.40.5)"]
+        LOGGER["ArcSight Logger Appliance<br/>• High-Compression Storage Groups<br/>• Immutable Raw & Parsed Event Store<br/>• Storage Data Validation (Periodic SHA Hash)<br/>• Verify Storage Tamper Detection"]
+        LOGGER_SEARCH["NIST SP 800-86 Forensic Search Engine<br/>• Ad-hoc SQL/CEF Query Interface<br/>• Backtracking & Forward Tracking"]
+    end
+
+    subgraph SIEM_DETECTION["REAL-TIME CORRELATION PIPELINE"]
+        ESM["ArcSight ESM Correlation Engine<br/>• In-Memory Stateful Event Matching<br/>• Dynamic Active Lists (Context Tracking)<br/>• Sliding Time Windows (Delta t <= 20m)"]
+        RULES["Detection Rule Inventory<br/>• Atomic Rules A01 - A13<br/>• Multi-Source Correlation Rule C01"]
+        CHANNELS["Active Channels Console<br/>• High-Priority Alert Monitoring<br/>• High-Frequency Volume Filter (Name != A04*)"]
+    end
+
+    subgraph SOC_ACTION["SOC OPERATING WORKFLOW"]
+        TRIAGE["Alert Triage & Validation<br/>Verify True Positive & Entity Context"]
+        PIVOT["Cross-Source Evidence Pivoting<br/>Trace Process Lineage, Mail Queues & SQL Dumps"]
+        RESPONSE["Incident Containment & Hardening<br/>Perimeter Egress Block, File Association & ACLs"]
+    end
+
+    %% Transmission to Ingestion Listeners
+    PFSENSE --> SC_PF
+    SURICATA --> SC_SUR
+    ZEEK --> SC_ZEEK
+    WEB --> SC_WEB
+    DB --> SC_DB
+    MAIL --> SC_MAIL
+    DNS --> SC_DNS
+    WIN --> SC_WIN
+
+    %% Feeding Normalization Engine
+    SC_PF --> CEF_ENGINE
+    SC_SUR --> CEF_ENGINE
+    SC_ZEEK --> CEF_ENGINE
+    SC_WEB --> CEF_ENGINE
+    SC_DB --> CEF_ENGINE
+    SC_MAIL --> CEF_ENGINE
+    SC_DNS --> CEF_ENGINE
+    SC_WIN --> CEF_ENGINE
+
+    %% Transmission to Logger
+    CEF_ENGINE ==>|"Encrypted SmartMessage (TCP/443 TLS)"| LOGGER
+    LOGGER --> LOGGER_SEARCH
+
+    %% Filtered Forwarding to ESM
+    LOGGER ==>|"Filtered Real-Time Stream"| ESM
+    ESM --> RULES
+    RULES --> CHANNELS
+
+    %% SOC Closed Loop
+    CHANNELS --> TRIAGE
+    TRIAGE -->|"Alert Trigger (T_0)"| LOGGER_SEARCH
+    LOGGER_SEARCH --> PIVOT
+    PIVOT --> RESPONSE

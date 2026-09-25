@@ -1,0 +1,45 @@
+graph TD
+    %% -------------------------------------------------------------
+    %% CASE 002: HOST DISCOVERY INVESTIGATION FLOW
+    %% -------------------------------------------------------------
+
+    subgraph TRIAGE["1. INITIAL ALERT TRIAGE"]
+        ALERT_A05["ESM Alert: A05 Discovery Burst<br/>Severity: 6 (Medium-High)<br/>Host: IT-ADMIN01 (10.10.35.18)"]
+        PARSE_TRIGGER["Analyze Rule Conditions<br/>Threshold: >= 3 discovery commands in 5m<br/>Matched Utilities: where, sc, netstat"]
+    end
+
+    subgraph PIVOT_LOGGER["2. LOGGER PROCESS INVESTIGATION"]
+        QUERY_PARENT["Logger Query: Sysmon Event ID 1<br/>Extract ParentProcessGuid from matched events"]
+        MATCH_C2["Match ParentProcessGuid<br/>Identical to powershell.exe reverse shell<br/>from Case 001 ({ecec360d-d720...1800})"]
+        EXPAND_SESSION["Query All Child Commands under Parent<br/>Extract Full Reconnaissance Sequence"]
+    end
+
+    subgraph RECON_SCOPE["3. RECONNAISSANCE SCOPE EVALUATION"]
+        SERVICE_DISC["Service & Port Probing<br/>• where ssh (OpenSSH Client)<br/>• sc query sshd & termservice<br/>• netstat -an (Active TCP Ports)"]
+        TARGET_FOUND["Target Identification<br/>• cmd /c type C:\\Users\\admin\\.ssh\\config<br/>• Discovered Target: WEB01 (10.10.34.13:22)<br/>• Discovered User: thanh"]
+    end
+
+    subgraph GAP_ANALYSIS["4. DETECTION LIMITATION ASSESSMENT"]
+        EVAL_WINDOW["Threshold Analysis<br/>Pacing Execution (1 cmd / 3m) would evade A05"]
+        PROPOSE_FIX["Engineering Recommendation<br/>Weight Parent Process Context<br/>Lower Threshold to 1 cmd for rogue shells"]
+    end
+
+    %% Connections
+    ALERT_A05 --> PARSE_TRIGGER
+    PARSE_TRIGGER --> QUERY_PARENT
+    QUERY_PARENT --> MATCH_C2
+    MATCH_C2 --> EXPAND_SESSION
+    EXPAND_SESSION --> SERVICE_DISC
+    SERVICE_DISC --> TARGET_FOUND
+    TARGET_FOUND --> EVAL_WINDOW
+    EVAL_WINDOW --> PROPOSE_FIX
+
+    classDef alert fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c;
+    classDef logger fill:#e1f5fe,stroke:#0288d1,stroke-width:1px,color:#01579b;
+    classDef scope fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1px,color:#4a148c;
+    classDef gap fill:#fff3e0,stroke:#e65100,stroke-width:1px,color:#bf360c;
+
+    class ALERT_A05,PARSE_TRIGGER alert;
+    class QUERY_PARENT,MATCH_C2,EXPAND_SESSION logger;
+    class SERVICE_DISC,TARGET_FOUND scope;
+    class EVAL_WINDOW,PROPOSE_FIX gap;

@@ -1,0 +1,1 @@
+deviceHostName="IT-ADMIN" AND deviceProduct="Sysmon" AND externalId=3 AND sourceAddress=10.10.35.18 AND destinationAddress=203.0.113.25 AND destinationPort=11601

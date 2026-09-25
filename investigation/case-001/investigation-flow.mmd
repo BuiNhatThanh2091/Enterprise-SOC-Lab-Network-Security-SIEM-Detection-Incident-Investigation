@@ -1,0 +1,62 @@
+graph TD
+    %% -------------------------------------------------------------
+    %% CASE 001: INITIAL COMPROMISE INVESTIGATION FLOW
+    %% -------------------------------------------------------------
+
+    subgraph TRIAGE["1. INITIAL ALERT TRIAGE"]
+        ALERT_C01["ESM Correlated Alert: C01<br/>Severity: 9 (Critical)<br/>Entity: 10.10.35.18 (IT-ADMIN01)"]
+        PARSE_PAYLOAD["Parse Composite Event Payload<br/>• Ingress Download (A02)<br/>• Host Script Exec (A03)<br/>• Outbound Callback (A04)"]
+    end
+
+    subgraph PIVOT_ENDPOINT["2. ENDPOINT PROCESS FORENSICS (LOGGER)"]
+        QUERY_A03["Logger Query: Sysmon Event ID 1<br/>destinationProcessName = mshta.exe<br/>Host = IT-ADMIN"]
+        EVID_MSHTA["Found mshta.exe Launching .hta<br/>File: SecurityPatch_KB504991.hta<br/>ProcessGuid: {ecec360d-d71c...1800}"]
+        TRACE_CHILD["Trace Child Processes via ProcessGuid<br/>mshta.exe ──► cmd.exe /c ──► powershell.exe (-enc)"]
+    end
+
+    subgraph PIVOT_NETWORK["3. NETWORK C2 VERIFICATION (LOGGER)"]
+        QUERY_A04["Logger Query: Sysmon Event ID 3<br/>ProcessGuid of PowerShell ──► Target: 203.0.113.25:4444"]
+        QUERY_ZEEK["Logger Query: Zeek conn.log<br/>Check TCP/4444 Session Duration & Byte Counts"]
+        EVID_REVERSE_SHELL["Confirmed Active Reverse Shell<br/>ZeekUID: C9xKa811<br/>Duration > 1800s | orig_bytes > 0"]
+    end
+
+    subgraph PIVOT_INGRESS["4. INGRESS BACKTRACKING (LOGGER)"]
+        QUERY_A02["Logger Query: Suricata SID 1101002<br/>HTTP GET SecurityPatch_KB504991.zip<br/>URL: http://update.kali.test/"]
+        QUERY_MAIL["Logger Query: Postfix Syslog (A01)<br/>Recipient: user01@soclab.test"]
+        EVID_PHISH["Phishing Email Confirmed<br/>Sender: security@microsoft.com<br/>QueueID: 718FC8006A"]
+    end
+
+    subgraph RESPONSE["5. CONTAINMENT & HARDENING"]
+        ISOLATE["Host Network Isolation<br/>Disconnect vSwitch Port for 10.10.35.18"]
+        KILL_PROC["Process Termination<br/>Kill powershell.exe & mshta.exe (Event ID 5)"]
+        BLOCK_EGRESS["Firewall Egress Hardening<br/>pfSense Drop TCP/4444 Outbound"]
+    end
+
+    %% Flow connections
+    ALERT_C01 --> PARSE_PAYLOAD
+    PARSE_PAYLOAD --> QUERY_A03
+    QUERY_A03 --> EVID_MSHTA
+    EVID_MSHTA --> TRACE_CHILD
+    TRACE_CHILD --> QUERY_A04
+    QUERY_A04 --> QUERY_ZEEK
+    QUERY_ZEEK --> EVID_REVERSE_SHELL
+
+    EVID_REVERSE_SHELL --> QUERY_A02
+    QUERY_A02 --> QUERY_MAIL
+    QUERY_MAIL --> EVID_PHISH
+
+    EVID_PHISH --> ISOLATE
+    EVID_REVERSE_SHELL --> KILL_PROC
+    EVID_REVERSE_SHELL --> BLOCK_EGRESS
+
+    classDef alert fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c;
+    classDef endpoint fill:#e1f5fe,stroke:#0288d1,stroke-width:1px,color:#01579b;
+    classDef network fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1px,color:#4a148c;
+    classDef ingress fill:#fff3e0,stroke:#e65100,stroke-width:1px,color:#bf360c;
+    classDef response fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+
+    class ALERT_C01,PARSE_PAYLOAD alert;
+    class QUERY_A03,EVID_MSHTA,TRACE_CHILD endpoint;
+    class QUERY_A04,QUERY_ZEEK,EVID_REVERSE_SHELL network;
+    class QUERY_A02,QUERY_MAIL,EVID_PHISH ingress;
+    class ISOLATE,KILL_PROC,BLOCK_EGRESS response;

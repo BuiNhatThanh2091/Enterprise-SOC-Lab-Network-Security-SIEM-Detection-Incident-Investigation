@@ -1,0 +1,70 @@
+# ==============================================================================
+# Enterprise SOC Lab — Git Ignore Configuration
+# ==============================================================================
+
+# Private Source of Truth & Local Academic Deliverables
+*.docx
+*.doc
+*.pdf
+*.pptx
+toan-bo-he-thong-kien_truc_lab.txt
+internal/
+*.private.*
+
+# Credentials, Secrets & Sensitive Configuration
+*.env
+*.env.*
+*.secret
+*.secrets
+*.key
+*.pem
+*.pfx
+*.p12
+*.crt
+*.cer
+*.pub
+credentials*
+secrets*
+password*
+shadow
+passwd
+id_rsa
+id_ecdsa
+id_ed25519
+
+# Packet Captures & Raw Network Dumps
+*.pcap
+*.pcapng
+*.cap
+*.dmp
+*.tcpdump
+
+# Raw Un-sanitized Logs & Large Exports
+*.log
+*.audit
+*.evtx
+*.sqlite
+*.sqlite3
+*.raw
+*.vmem
+*.vmsn
+*.vmdk
+*.ova
+*.ovf
+
+# Operating System & Editor Artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.tmp
+*.bak
+
+# Build / Scratch Files
+scratch/
+tmp/
+temp/

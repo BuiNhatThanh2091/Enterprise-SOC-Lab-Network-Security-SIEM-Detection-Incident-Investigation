@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-weight: 700; font-size: 22px; fill: #1a202c; }
+      .subtitle { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-size: 13px; fill: #718096; }
+      .zone-title { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
+      .node-title { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-weight: 600; font-size: 13px; fill: #1a202c; }
+      .node-desc { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-size: 11px; fill: #4a5568; }
+      .path-label { font-family: 'Segoe UI', -apple-system, Roboto, sans-serif; font-size: 11px; font-weight: 600; }
+      .zone-box { rx: 8; stroke-width: 1.5; stroke-dasharray: 4,4; }
+      .node-card { rx: 6; stroke-width: 1.5; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06)); }
+      .inbound-path { stroke: #2b6cb0; stroke-width: 2.5; fill: none; marker-end: url(#arrow-blue); }
+      .outbound-path { stroke: #c53030; stroke-width: 2.5; fill: none; stroke-dasharray: 6,4; marker-end: url(#arrow-red); }
+      .bypass-path { stroke: #dd6b20; stroke-width: 2.5; fill: none; stroke-dasharray: 4,3; marker-end: url(#arrow-orange); }
+      .return-path { stroke: #38a169; stroke-width: 2; fill: none; stroke-dasharray: 5,3; marker-end: url(#arrow-green); }
+    </style>
+
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2b6cb0" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#c53030" />
+    </marker>
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#dd6b20" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#38a169" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="900" fill="#f8fafc" />
+
+  <!-- Header -->
+  <g transform="translate(40, 35)">
+    <text class="title" x="0" y="0">NETWORK SECURITY ARCHITECTURE &amp; ENFORCEMENT FLOW</text>
+    <text class="subtitle" x="0" y="20">Level 2: Ingress Inspection, Forced Security Transit Routing, Egress Filtering &amp; Layer-2 Bypass Defense</text>
+  </g>
+
+  <!-- LEGEND -->
+  <g transform="translate(720, 20)">
+    <rect x="0" y="0" width="440" height="45" rx="6" fill="#ffffff" stroke="#e2e8f0" />
+    <line x1="15" y1="22" x2="45" y2="22" stroke="#2b6cb0" stroke-width="2.5" marker-end="url(#arrow-blue)" />
+    <text class="path-label" x="52" y="26" fill="#2b6cb0">Inbound Ingress Flow</text>
+
+    <line x1="165" y1="22" x2="195" y2="22" stroke="#c53030" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#arrow-red)" />
+    <text class="path-label" x="202" y="26" fill="#c53030">Outbound Egress Flow</text>
+
+    <line x1="315" y1="22" x2="345" y2="22" stroke="#dd6b20" stroke-width="2.5" stroke-dasharray="4,3" marker-end="url(#arrow-orange)" />
+    <text class="path-label" x="352" y="26" fill="#dd6b20">Same-L2 Direct Bypass</text>
+  </g>
+
+  <!-- ==================== HOP 1: EXTERNAL / WAN ==================== -->
+  <g transform="translate(40, 80)">
+    <rect class="zone-box" width="1120" height="95" fill="#fff5f5" stroke="#feb2b2" />
+    <text class="zone-title" x="20" y="22" fill="#c53030">HOP 1: EXTERNAL / UNTRUSTED WAN (203.0.113.0/24)</text>
+
+    <rect class="node-card" x="40" y="32" width="280" height="50" fill="#ffffff" stroke="#e53e3e" />
+    <text class="node-title" x="50" y="52">EXTERNAL CLIENT / ATTACKER</text>
+    <text class="node-desc" x="50" y="68">203.0.113.25 • Initiates Inbound Web/Mail / Receives C2</text>
+
+    <rect class="node-card" x="440" y="32" width="300" height="50" fill="#ffffff" stroke="#e53e3e" />
+    <text class="node-title" x="450" y="52">PUBLIC VIRTUAL IPS (VIPs)</text>
+    <text class="node-desc" x="450" y="68">Web VIP: 203.0.113.13:80,443 | Mail VIP: 203.0.113.14:25</text>
+
+    <rect class="node-card" x="840" y="32" width="240" height="50" fill="#ffffff" stroke="#e53e3e" />
+    <text class="node-title" x="850" y="52">FORWARD PROXY</text>
+    <text class="node-desc" x="850" y="68">203.0.113.252:8132 (Whitelisted Egress)</text>
+  </g>
+
+  <!-- ==================== HOP 2: PERIMETER FIREWALL ==================== -->
+  <g transform="translate(40, 205)">
+    <rect class="zone-box" width="1120" height="110" fill="#fffaf0" stroke="#fbd38d" />
+    <text class="zone-title" x="20" y="22" fill="#dd6b20">HOP 2: PERIMETER FIREWALL &amp; NAT ENFORCEMENT</text>
+
+    <rect class="node-card" x="160" y="35" width="800" height="60" fill="#ffffff" stroke="#dd6b20" />
+    <text class="node-title" x="180" y="58" fill="#c05621">PFSENSE-01 (WAN: 203.0.113.11 | Transit: 10.10.36.10)</text>
+    <text class="node-desc" x="180" y="74">1. Ingress DNAT: Translates Public VIPs to Real IPs (10.10.34.13, 10.10.34.14)</text>
+    <text class="node-desc" x="180" y="88">2. Forced Routing: Static routes for 10.10.34.0/24 &amp; 10.10.35.0/24 point to 10.10.36.11 (GW_SURICATA)</text>
+  </g>
+
+  <!-- ==================== HOP 3: SECURITY TRANSIT CHOKE POINT ==================== -->
+  <g transform="translate(40, 345)">
+    <rect class="zone-box" width="1120" height="90" fill="#fffff0" stroke="#ecc94b" />
+    <text class="zone-title" x="20" y="22" fill="#b7791f">HOP 3: SECURITY TRANSIT SEGMENT (10.10.36.0/24) — MANDATORY CHOKE POINT</text>
+    
+    <rect class="node-card" x="160" y="32" width="800" height="48" fill="#ffffff" stroke="#d69e2e" />
+    <text class="node-title" x="180" y="52" fill="#975a16">POINT-TO-POINT SEGMENT: pfSense (10.10.36.10) ◄──────► Suricata (10.10.36.11)</text>
+    <text class="node-desc" x="180" y="68">Eliminates Layer-2 Direct Switching between Firewall and Internal Hosts • Enforces 100% Inspection</text>
+  </g>
+
+  <!-- ==================== HOP 4: INLINE SURICATA IPS ==================== -->
+  <g transform="translate(40, 465)">
+    <rect class="zone-box" width="1120" height="110" fill="#f0fff4" stroke="#9ae6b4" />
+    <text class="zone-title" x="20" y="22" fill="#276749">HOP 4: CORE LAYER-3 ROUTER &amp; INLINE NFQUEUE DPI</text>
+
+    <rect class="node-card" x="160" y="32" width="800" height="65" fill="#ffffff" stroke="#38a169" />
+    <text class="node-title" x="180" y="54" fill="#22543d">SURICATA-IPS01 (Transit: 10.10.36.11 | DMZ: 10.10.34.11 | Internal: 10.10.35.11)</text>
+    <text class="node-desc" x="180" y="70">Linux Kernel Forwarding (net.ipv4.ip_forward=1) • nftables/iptables FORWARD chain to NFQUEUE</text>
+    <text class="node-desc" x="180" y="86">Deep Packet Inspection: Signature SIDs 1101002 (Zip DL), 1101021 (DMZ Exfil) • Fail-Close Production Stance</text>
+  </g>
+
+  <!-- ==================== HOP 5: PROTECTED PRODUCTION SEGMENTS ==================== -->
+  <g transform="translate(40, 605)">
+    <rect class="zone-box" width="1120" height="235" fill="#ebf8ff" stroke="#bee3f8" />
+    <text class="zone-title" x="20" y="22" fill="#2b6cb0">HOP 5: PROTECTED SUB-NETWORKS &amp; COMPENSATORY HOST FIREWALLS</text>
+
+    <!-- DMZ BOX -->
+    <g transform="translate(30, 35)">
+      <rect class="node-card" width="480" height="180" fill="#ffffff" stroke="#3182ce" />
+      <text class="node-title" x="20" y="25" fill="#2b6cb0">DMZ ZONE (10.10.34.0/24) — Gateway: 10.10.34.11</text>
+      
+      <!-- WEB01 -->
+      <rect x="20" y="40" width="440" height="60" rx="4" fill="#f7fafc" stroke="#cbd5e0" />
+      <text class="node-title" x="30" y="60">WEB01 (10.10.34.13) — Frappe HRMS</text>
+      <text class="node-desc" x="30" y="74">Traefik Reverse Proxy • Container Backend (hrms-backend-1)</text>
+      <text class="node-desc" x="30" y="88">Audited Sudo Docker • Egress Target for Inter-Zone SSH (TCP/22)</text>
+
+      <!-- MAIL01 -->
+      <rect x="20" y="110" width="440" height="55" rx="4" fill="#f7fafc" stroke="#cbd5e0" />
+      <text class="node-title" x="30" y="130">MAIL01 (10.10.34.14) — Postfix SMTP Gateway</text>
+      <text class="node-desc" x="30" y="145">Accepts Port 25 from External • Forwards Webmail to Roundcube</text>
+      <text class="node-desc" x="30" y="158">Isolated from Internal Domain Controller</text>
+    </g>
+
+    <!-- INTERNAL BOX -->
+    <g transform="translate(560, 35)">
+      <rect class="node-card" width="530" height="180" fill="#ffffff" stroke="#3182ce" />
+      <text class="node-title" x="20" y="25" fill="#2b6cb0">INTERNAL CORE (10.10.35.0/24) — Gateway: 10.10.35.11</text>
+      
+      <!-- IT-ADMIN01 -->
+      <rect x="20" y="40" width="230" height="60" rx="4" fill="#f7fafc" stroke="#cbd5e0" />
+      <text class="node-title" x="30" y="58">IT-ADMIN01 (10.10.35.18)</text>
+      <text class="node-desc" x="30" y="72">Standalone Admin Win10</text>
+      <text class="node-desc" x="30" y="86">Target of Phishing &amp; C2 Foothold</text>
+
+      <!-- DB01 -->
+      <rect x="270" y="40" width="240" height="60" rx="4" fill="#f7fafc" stroke="#e53e3e" />
+      <text class="node-title" x="280" y="58" fill="#c53030">DB01 (10.10.35.19) — MariaDB</text>
+      <text class="node-desc" x="280" y="72" font-weight="600">HOST IPTABLES SHIELD:</text>
+      <text class="node-desc" x="280" y="86">DROP 10.10.35.x • ALLOW 10.10.34.13</text>
+
+      <!-- SAME-L2 EXPLANATION BOX -->
+      <rect x="20" y="110" width="490" height="55" rx="4" fill="#fffaf0" stroke="#fbd38d" />
+      <text class="node-desc" x="30" y="128" fill="#744210" font-weight="700">SAME-L2 SWITCHING BLIND SPOT &amp; COMPENSATORY DEFENSE:</text>
+      <text class="node-desc" x="30" y="142" fill="#744210">IT-ADMIN01 (10.10.35.18) ──► DB01 (10.10.35.19) switches directly via MAC address without</text>
+      <text class="node-desc" x="30" y="155" fill="#744210">hitting Gateway 10.10.35.11. Protection relies 100% on host-based iptables on DB01.</text>
+    </g>
+  </g>
+
+  <!-- ==================== FLOW PATH OVERLAYS ==================== -->
+  
+  <!-- Inbound Flow (Blue) -->
+  <path class="inbound-path" d="M 180 82 L 180 235" />
+  <path class="inbound-path" d="M 280 295 L 280 345 L 280 465 L 200 645" />
+
+  <!-- Outbound Egress (Red Dashed) -->
+  <path class="outbound-path" d="M 650 645 L 650 530 L 650 345 L 650 265 L 900 82" />
+
+  <!-- Same-L2 Direct Bypass (Orange Dashed) -->
+  <path class="bypass-path" d="M 700 680 L 820 680" />
+
+  <!-- Footer -->
+  <text x="40" y="870" font-family="'Segoe UI', sans-serif" font-size="11" fill="#a0aec0">Enterprise SOC Lab Portfolio • Architecture Level 2 Specification • Enforced Transit Routing &amp; L2 Direct Switching Defense</text>
+</svg>

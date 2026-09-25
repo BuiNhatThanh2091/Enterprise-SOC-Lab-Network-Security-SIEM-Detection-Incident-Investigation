@@ -1,0 +1,80 @@
+graph TD
+    %% -------------------------------------------------------------
+    %% NETWORK SECURITY & TRAFFIC INSPECTION FLOW
+    %% Demonstrates:
+    %% 1. Ingress Flow through Security Transit & Inline IPS
+    %% 2. Egress Flow through Forward Proxy
+    %% 3. Stateful Return Flow Symmetry
+    %% 4. Intra-Subnet Same-L2 Direct Switching & Blind Spot
+    %% 5. Host-Based iptables L2 Defense
+    %% -------------------------------------------------------------
+
+    subgraph CLIENT["EXTERNAL TRAFFIC (203.0.113.0/24)"]
+        EXT_USER["External Client / Attacker<br/>203.0.113.25"]
+        EXT_PROXY["Forward Web Proxy<br/>203.0.113.252:8132"]
+    end
+
+    subgraph FW["PERIMETER FIREWALL (PFSENSE-01)"]
+        WAN_IN["WAN Interface (203.0.113.11)<br/>• Stateful Packet Filter<br/>• DNAT to DMZ VIPs<br/>• Default-Deny Ingress"]
+        TRANSIT_OUT["LAN01 Interface (10.10.36.10)<br/>• Static Route Choke Point<br/>• Egress Policy Filtering"]
+    end
+
+    subgraph TRANSIT["SECURITY TRANSIT SEGMENT (10.10.36.0/24)"]
+        TRANSIT_WIRE["Point-to-Point Transit Link<br/>Enforces: pfSense <---> Suricata<br/>NO Direct Routing to Internal/DMZ"]
+    end
+
+    subgraph IPS["CORE INLINE IPS & ROUTER (SURICATA-IPS01)"]
+        SUR_TRANSIT["Transit Interface: ens256 (10.10.36.11)"]
+        NFQUEUE["Kernel NFQUEUE Interception<br/>• Linux IP Forwarding<br/>• Inline Stream Reassembly<br/>• DPI Signature Engine<br/>• Fail-Close Enforcement"]
+        SUR_DMZ_INT["DMZ Gateway: ens225 (10.10.34.11)<br/>Internal Gateway: ens193 (10.10.35.11)"]
+    end
+
+    subgraph DMZ_ZONE["DMZ ZONE (10.10.34.0/24)"]
+        WEB_SRV["WEB01 (10.10.34.13)<br/>Frappe HRMS Web Server"]
+        MAIL_SRV["MAIL01 (10.10.34.14)<br/>Postfix Mail Server"]
+    end
+
+    subgraph INT_ZONE["INTERNAL ZONE (10.10.35.0/24)"]
+        subgraph L2_FABRIC["Intra-Subnet Layer-2 Virtual Switch Fabric (Same Broadcast Domain)"]
+            IT_ADMIN["IT-ADMIN01<br/>10.10.35.18<br/>Privileged Workstation"]
+            DB_SRV["DB01 (10.10.35.19)<br/>MariaDB Database Server"]
+            AD_DC["DC01 (10.10.35.12)<br/>Active Directory & DNS"]
+            WIN_PC["WIN10-01..03<br/>10.10.35.13, .16, .17<br/>Corporate Desktops"]
+        end
+        DB_IPTABLES["DB01 Host Firewall (iptables)<br/>• ALLOW: src = 10.10.34.13 (WEB01:3306)<br/>• DROP: src = 10.10.35.0/24 (Direct L2 Blocked!)"]
+    end
+
+    %% Ingress Flow (Solid Blue Line)
+    EXT_USER ==>|"1. Ingress Request to VIP"| WAN_IN
+    WAN_IN ==>|"2. DNAT & Route via 10.10.36.11"| TRANSIT_OUT
+    TRANSIT_OUT ==>|"3. Transit Traversal"| TRANSIT_WIRE
+    TRANSIT_WIRE ==>|"4. Ingress to IPS"| SUR_TRANSIT
+    SUR_TRANSIT ==>|"5. Enqueue to Userspace"| NFQUEUE
+    NFQUEUE ==>|"6. Validated Packet"| SUR_DMZ_INT
+    SUR_DMZ_INT ==>|"7. Forward to DMZ Host"| WEB_SRV
+
+    %% Return Traffic Symmetry (Dotted Line)
+    WEB_SRV -.->|"8. Return Traffic to Default GW (10.10.34.11)"| SUR_DMZ_INT
+    SUR_DMZ_INT -.->|"9. Reverse NFQUEUE Tracked"| NFQUEUE
+    NFQUEUE -.->|"10. Egress to Transit (10.10.36.11)"| SUR_TRANSIT
+    SUR_TRANSIT -.->|"11. Ingress Transit Interface"| TRANSIT_OUT
+    TRANSIT_OUT -.->|"12. Reverse NAT & External Egress"| WAN_IN
+    WAN_IN -.->|"13. Response Delivered"| EXT_USER
+
+    %% Authorized Inter-Zone Connection (Solid Green)
+    WEB_SRV -->|"Inter-Zone SQL (TCP/3306) via GW 10.10.34.11"| SUR_DMZ_INT
+    SUR_DMZ_INT -->|"Inter-Zone DPI"| NFQUEUE
+    NFQUEUE -->|"Forward to Internal (.35.11)"| SUR_DMZ_INT
+    SUR_DMZ_INT -->|"Delivery to DB01"| DB_IPTABLES
+    DB_IPTABLES -->|"ACCEPT (Web Origin)"| DB_SRV
+
+    %% Outbound Egress to Internet (Orange Dash)
+    IT_ADMIN -.->|"Outbound Web to Proxy (:8132)"| SUR_DMZ_INT
+    SUR_DMZ_INT -.->|"Egress DPI"| NFQUEUE
+    NFQUEUE -.->|"Forward to pfSense"| TRANSIT_OUT
+    TRANSIT_OUT -.->|"Outbound NAT"| WAN_IN
+    WAN_IN -.->|"Egress to Proxy"| EXT_PROXY
+
+    %% Same-L2 Blind Spot and Host Shield (Red Double Line)
+    IT_ADMIN ==>|"DIRECT L2 SWITCHING (Bypasses Suricata Gateway!)"| DB_IPTABLES
+    DB_IPTABLES -.->|"KERNEL DROP (Mitigates L2 Blind Spot)"| DB_SRV

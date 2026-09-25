@@ -1,0 +1,1 @@
+deviceHostName="IT-ADMIN" AND deviceProduct="Sysmon" AND externalId=1 AND destinationProcessName CONTAINS "mshta.exe" AND deviceCustomString4 CONTAINS ".hta"

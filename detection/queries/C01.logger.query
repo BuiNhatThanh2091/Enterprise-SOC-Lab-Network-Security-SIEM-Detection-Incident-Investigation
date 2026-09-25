@@ -1,0 +1,1 @@
+name="SOC-LAB C01 Initial Compromise Correlation" OR (deviceProduct="ArcSight" AND message CONTAINS "C01")

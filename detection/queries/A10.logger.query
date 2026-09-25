@@ -1,0 +1,1 @@
+deviceProduct="Suricata IDS IPS" AND sourceAddress=10.10.35.18 AND destinationAddress=10.10.34.13 AND destinationPort=22
