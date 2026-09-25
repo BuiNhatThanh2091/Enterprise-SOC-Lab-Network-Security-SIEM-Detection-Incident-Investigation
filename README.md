@@ -7,7 +7,13 @@ A hands-on enterprise-style security laboratory integrating perimeter firewall e
 
 ## Architecture Overview
 
-![Enterprise SOC Architecture](architecture/enterprise-soc-overview.svg)
+[![Enterprise SOC Architecture](architecture/enterprise-soc-overview.svg)](architecture/enterprise-soc-overview.svg)
+
+> [!TIP]
+> **Interactive View**: Click the diagram above to inspect the full-resolution vector blueprint in your browser.  
+> * **Data Flow** (Solid Green): Inter-zone traffic routed through the pfSense firewall (`10.10.36.10`) and Suricata inline IPS (`10.10.36.11`).
+> * **Logging Flow** (Dashed Blue): Telemetry from DMZ, Internal, Transit, and DNS sensors feeding ArcSight Connectors (`10.10.40.4`, `.10`), Logger (`.5`), and ESM.
+> * **Management Flow** (Dash-Dot Pink): Out-of-band administrative access anchored from the management gateway (`10.10.21.0/24`) and external RDP boundary (`ip_rdp_external`).
 
 ---
 

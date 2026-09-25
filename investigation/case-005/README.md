@@ -190,7 +190,7 @@ Filterlog records confirm that subsequent connection attempts from `10.10.34.13`
 ## 17. Detection Improvements
 1. **Switch Suricata SID 1101021 to Inline Drop**: Transition rule action from `alert` to `drop` in production ruleset.
 2. **Volumetric Egress Flow Rule**: Implement an ArcSight ESM rule monitoring Zeek `conn.log` for any single flow originating from DMZ exceeding 2 MB without matching known CDN/mirror IP lists.
-3. **Strict Egress Whitelisting**: Enforce pfSense firewall policy allowing DMZ outbound traffic exclusively via the Forward Proxy (`10.10.25.252:8132`).
+3. **Strict Egress Whitelisting**: Enforce pfSense firewall policy allowing DMZ outbound traffic exclusively via the Forward Proxy (`10.10.21.252:8132`).
 
 ---
 

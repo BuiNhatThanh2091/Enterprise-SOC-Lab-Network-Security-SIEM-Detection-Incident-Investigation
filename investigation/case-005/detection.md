@@ -18,6 +18,6 @@ This document evaluates the detection performance, query verification, and engin
    * Detection `A13` is an effective tripwire for the specific laboratory simulation, but **cannot be generalized** as an enterprise-wide Data Loss Prevention (DLP) mechanism.
    * If an adversary channels exfiltration through an encrypted HTTPS tunnel (`TCP/443`) or embeds data inside DNS queries (`TCP/UDP 53`), signature SID `1101021` will remain dormant.
 2. **Recommended Defensive Architecture**:
-   * **Mandatory Egress Filtering on DMZ**: Web servers must not possess arbitrary outbound access to the public Internet. Egress must be strictly restricted to internal DNS (`10.10.21.20`), NTP, and official software repositories via Forward Proxy (`10.10.25.252:8132`).
+   * **Mandatory Egress Filtering on DMZ**: Web servers must not possess arbitrary outbound access to the public Internet. Egress must be strictly restricted to internal DNS (`10.10.21.20`), NTP, and official software repositories via Forward Proxy (`10.10.21.252:8132`).
    * **Volumetric Flow Anomalies in ESM**: Create an ArcSight correlation rule monitoring Zeek `conn.log` sessions where `orig_bytes > 2,000,000` (2 MB) originating from DMZ subnets to external non-proxy destinations.
    * **Inline IPS Drop Mode**: Transition Suricata from `alert` mode to `drop` mode (NFQUEUE Fail-Close) for non-standard outbound ports.
